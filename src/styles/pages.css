@@ -1,0 +1,272 @@
+/* ページ：予定の詳細、設定など、縦に読んでいく画面 */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  padding: 20px max(16px, calc((100% - 760px) / 2)) 96px;
+  overflow-y: auto;
+}
+.card {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg);
+}
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 500;
+}
+.section-icon {
+  display: grid;
+  place-items: center;
+  color: var(--text-2);
+}
+.section-count {
+  padding: 0 8px;
+  border-radius: 10px;
+  background: var(--bg-3);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 400;
+}
+.section-hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* ---- 予定のページ ---- */
+.ep-head {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 18px;
+}
+.ep-stripe {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 6px;
+  border-radius: 3px;
+  background: var(--chip);
+}
+.ep-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.ep-title {
+  width: 100%;
+  padding: 4px 8px !important;
+  margin-left: -8px;
+  background: none !important;
+  font-size: 26px;
+  line-height: 1.3;
+}
+.ep-title:hover:not(:focus) {
+  background: var(--bg-3) !important;
+}
+.ep-when {
+  color: var(--text-2);
+}
+.crumb {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 10px 0 6px;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  color: var(--primary);
+  font-size: 13px;
+  cursor: pointer;
+}
+.crumb:hover {
+  background: var(--hover);
+}
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.row-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 38px;
+  color: var(--text-2);
+}
+.row-body {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 38px;
+}
+.row-body > input,
+.row-body > textarea {
+  flex: 1;
+}
+.row-body > select {
+  flex: 0 1 240px;
+}
+.row-note {
+  margin: -6px 0 0 36px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.when {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.step-done {
+  font-weight: 500;
+}
+.step-date {
+  flex: none;
+  width: 150px;
+}
+.progress {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-3);
+  overflow: hidden;
+}
+.progress span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--primary);
+  transition: width 0.2s;
+}
+.rel-item {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+.rel-mark {
+  flex: none;
+  width: 4px;
+  height: 32px;
+  border-radius: 2px;
+  background: var(--chip);
+}
+.section > .btn {
+  align-self: flex-start;
+}
+
+/* ---- 設定 ---- */
+.settings h2 {
+  margin-bottom: -4px;
+}
+.cat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.cat-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cat-name {
+  flex: 1;
+  font-weight: 500;
+}
+.cat-sub {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cat-sub .field:last-child {
+  flex: 0 1 220px;
+}
+.setting-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 40px;
+}
+.guide {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--bg-3);
+}
+.guide summary {
+  font-weight: 500;
+  cursor: pointer;
+}
+.guide ol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0 4px;
+  padding-left: 20px;
+}
+.code-line {
+  display: block;
+  margin-top: 4px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--bg);
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 13px;
+  word-break: break-all;
+  user-select: all;
+}
+
+@media (max-width: 720px) {
+  .page {
+    gap: 12px;
+    padding: 12px 12px 96px;
+  }
+  .card {
+    padding: 14px;
+  }
+  input.ep-title:not([type='checkbox']) {
+    font-size: 22px;
+  }
+  .row {
+    gap: 8px;
+  }
+  .row-note {
+    margin-left: 32px;
+  }
+  .step-item {
+    flex-wrap: wrap;
+  }
+  .step-item .list-main {
+    flex: 1 1 60%;
+  }
+}

@@ -1,0 +1,423 @@
+/* カレンダー：月表示、時間の枠（週・日）、予定のチップとブロック */
+
+/* ---- 予定のチップ（1行） ---- */
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  height: var(--lane-h);
+  margin: 0 3px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+}
+.chip svg {
+  flex: none;
+}
+.chip-bar {
+  background: var(--chip);
+  color: var(--on-chip);
+}
+.chip-bar:hover {
+  filter: brightness(0.94);
+}
+.chip-dot:hover,
+.chip-more:hover {
+  background: var(--hover);
+}
+.chip-mark {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--chip);
+}
+.chip-time {
+  flex: none;
+  color: var(--text-2);
+}
+.chip-title {
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+}
+.chip.cont-l {
+  margin-left: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.chip.cont-r {
+  margin-right: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.chip.done {
+  opacity: 0.6;
+}
+.chip.done .chip-title {
+  text-decoration: line-through;
+}
+.chip-more {
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+/* ---- 月表示 ---- */
+.month {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.month-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.month-hint button {
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font-size: 12px;
+  cursor: pointer;
+}
+.month-wd {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 8px 0 4px;
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 500;
+  text-align: center;
+}
+.month-wd .sun {
+  color: var(--sun);
+}
+.month-wd .sat {
+  color: var(--sat);
+}
+.month-grid {
+  --mday-h: 30px;
+  display: grid;
+  flex: 1;
+  min-height: 0;
+}
+.mweek {
+  position: relative;
+  min-height: 0;
+  border-top: 1px solid var(--line);
+}
+.mweek-cells {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+.mcell {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  padding: 3px 0 0;
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: none;
+  cursor: pointer;
+}
+.mcell:first-child {
+  border-left: 0;
+}
+.mcell:hover {
+  background: var(--hover);
+}
+.mday {
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 24px;
+  white-space: nowrap;
+}
+.mcell.sun .mday {
+  color: var(--sun);
+}
+.mcell.sat .mday {
+  color: var(--sat);
+}
+.mcell.out .mday {
+  opacity: 0.55;
+}
+.mcell.today .mday {
+  background: var(--primary);
+  color: var(--on-primary);
+  opacity: 1;
+}
+.mdiary {
+  position: absolute;
+  top: 9px;
+  right: 6px;
+  color: var(--muted);
+}
+.mweek-events {
+  position: absolute;
+  top: var(--mday-h);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-auto-rows: var(--lane-h);
+  row-gap: 2px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.mweek-events > * {
+  pointer-events: auto;
+}
+
+/* ---- 時間の枠（週・日） ---- */
+.tg {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.tg-head,
+.tg-allday {
+  display: flex;
+  flex: none;
+}
+.tg-corner {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--gutter);
+}
+.tg-days,
+.tg-allday-grid,
+.tg-cols {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+.tg-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 0 4px;
+  border: 0;
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.tg-wd {
+  font-size: 11px;
+  font-weight: 500;
+}
+.tg-num {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: var(--text);
+  font-size: 22px;
+  line-height: 40px;
+}
+.tg-day:hover .tg-num {
+  background: var(--hover);
+}
+.tg-day.sun .tg-wd {
+  color: var(--sun);
+}
+.tg-day.sat .tg-wd {
+  color: var(--sat);
+}
+.tg-day.today .tg-wd {
+  color: var(--primary);
+}
+.tg-day.today .tg-num {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+.tg-allday {
+  padding-bottom: 4px;
+}
+.tg-allday-grid {
+  row-gap: 2px;
+}
+.tg-scroll {
+  flex: 1;
+  min-height: 0;
+  border-top: 1px solid var(--line);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.tg-body {
+  position: relative;
+  display: flex;
+}
+.tg-gutter {
+  position: relative;
+  flex: none;
+  width: var(--gutter);
+}
+.tg-gutter span {
+  position: absolute;
+  right: 8px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1;
+  transform: translateY(-50%);
+}
+.tg-cols {
+  /* 1時間ごとの横線 */
+  background-image: linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+  background-size: 100% var(--hour);
+  background-position: 0 -1px;
+}
+.tg-col {
+  position: relative;
+  min-width: 0;
+  border-left: 1px solid var(--line);
+  cursor: cell;
+}
+.block {
+  position: absolute;
+  display: flex;
+  border-radius: 6px;
+  background: var(--chip);
+  color: var(--on-chip);
+  /* 重なった予定同士の境目は、線ではなく地の色のすき間で分ける */
+  box-shadow: 0 0 0 1px var(--bg);
+  overflow: hidden;
+  z-index: 1;
+}
+.block:hover {
+  z-index: 2;
+  filter: brightness(0.96);
+}
+.block.done {
+  opacity: 0.6;
+}
+.block-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: 3px 6px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: left;
+  overflow: hidden;
+  cursor: pointer;
+}
+.block-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+  overflow: hidden;
+}
+.block-title svg {
+  flex: none;
+}
+.block-time {
+  font-size: 11px;
+  opacity: 0.9;
+  white-space: nowrap;
+}
+.block.short .block-main {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  padding-block: 0;
+  white-space: nowrap;
+}
+.now-line {
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: 3;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--now);
+  pointer-events: none;
+}
+.now-line::before {
+  position: absolute;
+  top: -5px;
+  left: -6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--now);
+  content: '';
+}
+
+@media (max-width: 720px) {
+  .chip {
+    gap: 2px;
+    margin: 0 1px;
+    padding: 0 3px;
+    border-radius: 3px;
+    font-size: 10px;
+  }
+  /* スマホの月表示は幅がせまいので、時間つきの予定も塗りのチップにして題名を優先する */
+  .mweek-events .chip-dot {
+    background: var(--chip);
+    color: var(--on-chip);
+  }
+  .mweek-events .chip-mark,
+  .mweek-events .chip-time,
+  .mweek-events .chip svg {
+    display: none;
+  }
+  .chip-title {
+    text-overflow: clip;
+  }
+  .month-grid {
+    --mday-h: 26px;
+  }
+  .mday {
+    min-width: 22px;
+    height: 22px;
+    padding: 0 4px;
+    font-size: 11px;
+    line-height: 22px;
+  }
+  .mdiary {
+    top: 6px;
+    right: 2px;
+  }
+  .tg-num {
+    width: 32px;
+    height: 32px;
+    font-size: 17px;
+    line-height: 32px;
+  }
+  .tg-gutter span {
+    right: 4px;
+  }
+  .block-main {
+    padding: 2px 3px;
+    font-size: 11px;
+  }
+}
