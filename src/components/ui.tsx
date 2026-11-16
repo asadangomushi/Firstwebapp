@@ -221,6 +221,88 @@ export function CommitInput({
   );
 }
 
+/**
+ * 日付・時刻の入力欄（端末の日付選択・時刻選択が開く）。
+ *
+ * Android の時刻選択は、選んだ値を入力欄に直接書き込む。その知らせ方が端末やブラウザで
+ * まちまちで、React の onChange だけに頼ると「欄の表示は変わったのに保存されない」ことがある。
+ * そこで、欄の値そのものを見張る：知らせ（input / change）が来たとき、欄を離れたとき、
+ * そして欄を触っている間は一定間隔で、値が変わっていないかを確かめて onPick を呼ぶ。
+ */
+export function PickerInput({
+  type,
+  value,
+  onPick,
+  ...rest
+}: {
+  type: 'date' | 'time' | 'datetime-local';
+  value: string;
+  /** 値が変わったときに呼ばれる（空にされたときは呼ばれない） */
+  onPick: (v: string) => void;
+  className?: string;
+  'aria-label'?: string;
+  disabled?: boolean;
+  min?: string;
+  step?: number;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  /** 最後に「保存済み」とみなした値。これと欄の値が違えば、利用者が変えたということ。 */
+  const synced = useRef(value);
+  const latest = useRef(value);
+  latest.current = value;
+  const pickRef = useRef(onPick);
+  pickRef.current = onPick;
+
+  // 保存された値が変わったら（ドラッグでの調整や同期など）、欄の表示を合わせる
+  useEffect(() => {
+    synced.current = value;
+    const el = ref.current;
+    if (el && el.value !== value) el.value = value;
+  }, [value]);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const len = type === 'date' ? 10 : type === 'time' ? 5 : 16;
+    let timer: ReturnType<typeof setInterval> | undefined;
+
+    const check = () => {
+      const v = el.value.slice(0, len);
+      if (!v || v === synced.current) return;
+      synced.current = v;
+      pickRef.current(v);
+    };
+    const watch = () => {
+      clearInterval(timer);
+      timer = setInterval(check, 250);
+    };
+    const leave = () => {
+      check();
+      clearInterval(timer);
+      // 空にされたり、受け付けられない値だったときは、保存されている値の表示に戻す
+      // （受け付けられた値は、保存が終わりしだい上の処理で表示される）
+      if (el.value !== latest.current) el.value = latest.current;
+    };
+
+    el.addEventListener('input', check);
+    el.addEventListener('change', check);
+    el.addEventListener('focus', watch);
+    el.addEventListener('pointerdown', watch);
+    el.addEventListener('blur', leave);
+    return () => {
+      clearInterval(timer);
+      el.removeEventListener('input', check);
+      el.removeEventListener('change', check);
+      el.removeEventListener('focus', watch);
+      el.removeEventListener('pointerdown', watch);
+      el.removeEventListener('blur', leave);
+    };
+  }, [type]);
+
+  // React に値を管理させない（管理させると、保存が終わる前に古い値へ書き戻されてしまう）
+  return <input ref={ref} type={type} defaultValue={value} {...rest} />;
+}
+
 /** 1行入力して追加するための欄（持ち物・提出物など） */
 export function AddRow({
   placeholder,

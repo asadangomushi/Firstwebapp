@@ -22,7 +22,7 @@ import {
   rangeLabel,
   useNow,
 } from '../components/TimeGrid';
-import { CommitInput, IconBtn, Modal } from '../components/ui';
+import { CommitInput, IconBtn, Modal, PickerInput } from '../components/ui';
 import { chipVars, fill } from '../lib/colors';
 import { useData } from '../lib/data';
 import {
@@ -265,7 +265,11 @@ export function DayView({ date }: { date: string }) {
         </div>
 
         {selectedActual ? (
-          <ActualEditor a={selectedActual} onClose={() => setSelected(null)} />
+          <ActualEditor
+            key={selectedActual.id}
+            a={selectedActual}
+            onClose={() => setSelected(null)}
+          />
         ) : (
           <button type="button" className="day-side-btn" onClick={() => setSideOpen(true)}>
             <NotebookPen size={18} />
@@ -459,14 +463,12 @@ function ActualEditor({ a, onClose }: { a: Actual; onClose: () => void }) {
         </IconBtn>
       </div>
       <div className="ae-row">
-        <input
+        <PickerInput
           type="time"
           step={300}
           value={startTime}
           aria-label="開始時刻"
-          onChange={(ev) => {
-            const v = ev.target.value;
-            if (!v) return;
+          onPick={(v) => {
             const start = `${startDay}T${v}`;
             // 開始だけを動かす（終了はそのまま）。追い越したら15分の長さにする。
             const end =
@@ -475,14 +477,12 @@ function ActualEditor({ a, onClose }: { a: Actual; onClose: () => void }) {
           }}
         />
         <span className="sep">–</span>
-        <input
+        <PickerInput
           type="time"
           step={300}
           value={a.end.slice(11)}
           aria-label="終了時刻"
-          onChange={(ev) => {
-            const v = ev.target.value;
-            if (!v) return;
+          onPick={(v) => {
             const endDay = v <= startTime ? addDays(startDay, 1) : startDay;
             void updateActual(a.id, { end: `${endDay}T${v}` });
           }}

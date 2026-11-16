@@ -24,7 +24,7 @@ import {
 } from '../lib/store';
 import { useUI } from '../lib/ui-state';
 import { Section } from './EventSections';
-import { CommitInput, Empty, IconBtn, Modal } from './ui';
+import { CommitInput, Empty, IconBtn, Modal, PickerInput } from './ui';
 
 // ---- 逆算計画 ----
 
@@ -93,13 +93,12 @@ export function PlanSection({ e }: { e: Resolved }) {
                 締切の{beforeLabel(deadline, s.start)}・{fmtRelative(s.start)}
               </span>
             </div>
-            <input
+            <PickerInput
               type="date"
               className="step-date"
               value={s.start.slice(0, 10)}
               aria-label="ステップの日付"
-              onChange={(ev) => {
-                const v = ev.target.value;
+              onPick={(v) => {
                 if (v) void updateEvent(s.id, { start: v, end: addDays(v, 1), allDay: true });
               }}
             />
@@ -122,12 +121,7 @@ export function PlanSection({ e }: { e: Resolved }) {
           aria-label="ステップの内容"
           onChange={(ev) => setTitle(ev.target.value)}
         />
-        <input
-          type="date"
-          value={date}
-          aria-label="ステップの日付"
-          onChange={(ev) => ev.target.value && setDate(ev.target.value)}
-        />
+        <PickerInput type="date" value={date} aria-label="ステップの日付" onPick={setDate} />
         <button type="submit" className="btn btn-text" disabled={!title.trim()}>
           追加
         </button>
@@ -219,12 +213,7 @@ export function RelatedSection({ e }: { e: Resolved }) {
           aria-label="新しい関連予定の名前"
           onChange={(ev) => setTitle(ev.target.value)}
         />
-        <input
-          type="date"
-          value={date}
-          aria-label="新しい関連予定の日付"
-          onChange={(ev) => ev.target.value && setDate(ev.target.value)}
-        />
+        <PickerInput type="date" value={date} aria-label="新しい関連予定の日付" onPick={setDate} />
         <button type="submit" className="btn btn-text" disabled={!title.trim()}>
           追加
         </button>

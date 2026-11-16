@@ -52,6 +52,9 @@
   border-left: 1px solid var(--line);
   font-weight: 500;
 }
+.day-col-title > span:first-child {
+  white-space: nowrap;
+}
 .day-col-sub {
   overflow: hidden;
   color: var(--muted);
@@ -172,17 +175,21 @@
 }
 .ae-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
 }
 .ae-title {
   flex: 1;
 }
-.ae-row select {
-  flex: 1;
-}
+/* 時刻2つと種類を、せまい画面でも3つとも読める幅で分け合う */
 .ae-row input[type='time'] {
-  flex: none;
+  flex: 1 1 112px;
+  min-width: 0;
+}
+.ae-row select {
+  flex: 1 1 104px;
+  min-width: 0;
 }
 .day-side-btn {
   display: flex;
@@ -762,5 +769,15 @@
   }
   .flow-date {
     width: 64px;
+  }
+}
+
+@media (max-width: 380px) {
+  /* とても狭い画面では、見出しが縦に折れないようボタンを小さくする */
+  .day-col-title .btn-chip {
+    padding: 0 8px;
+  }
+  .day-col-title .btn-chip svg {
+    display: none;
   }
 }

@@ -47,13 +47,11 @@ const textTurn = (id, text) =>
   sse([
     start('msg_' + id),
     { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
-    ...text
-      .match(/.{1,6}/gs)
-      .map((t) => ({
-        type: 'content_block_delta',
-        index: 0,
-        delta: { type: 'text_delta', text: t },
-      })),
+    ...text.match(/.{1,6}/gs).map((t) => ({
+      type: 'content_block_delta',
+      index: 0,
+      delta: { type: 'text_delta', text: t },
+    })),
     { type: 'content_block_stop', index: 0 },
     {
       type: 'message_delta',

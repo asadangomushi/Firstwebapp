@@ -9,7 +9,7 @@ import { useSettings } from '../lib/settings';
 import { createEvent, type EventInput } from '../lib/store';
 import { KIND_LABEL, type EventKind, type RepeatFreq } from '../lib/types';
 import { useUI } from '../lib/ui-state';
-import { Modal, Segmented } from './ui';
+import { Modal, PickerInput, Segmented } from './ui';
 
 /** 開始時刻の初期値：今日なら次の正時、それ以外は9時 */
 function defaultStart(day: string): string {
@@ -152,13 +152,11 @@ export function EventDialog({ init, onClose }: { init: Partial<EventInput>; onCl
         />
 
         <div className="field-row">
-          <input
+          <PickerInput
             type="date"
             value={date}
             aria-label="日付"
-            onChange={(e) => {
-              const v = e.target.value;
-              if (!v) return;
+            onPick={(v) => {
               setDate(v);
               if (endDate < v) setEndDate(v);
             }}
@@ -166,30 +164,30 @@ export function EventDialog({ init, onClose }: { init: Partial<EventInput>; onCl
           {allDay ? (
             <>
               <span className="sep">–</span>
-              <input
+              <PickerInput
                 type="date"
                 value={endDate}
                 min={date}
                 aria-label="終了日"
-                onChange={(e) => e.target.value && setEndDate(e.target.value)}
+                onPick={setEndDate}
               />
             </>
           ) : (
             <div className="time-pair">
-              <input
+              <PickerInput
                 type="time"
                 value={startTime}
                 step={300}
                 aria-label="開始時刻"
-                onChange={(e) => e.target.value && setStartTime(e.target.value)}
+                onPick={setStartTime}
               />
               <span className="sep">–</span>
-              <input
+              <PickerInput
                 type="time"
                 value={endTime}
                 step={300}
                 aria-label="終了時刻"
-                onChange={(e) => e.target.value && setEndTime(e.target.value)}
+                onPick={setEndTime}
               />
               {overnight && <span className="hint">翌日</span>}
             </div>
@@ -214,12 +212,7 @@ export function EventDialog({ init, onClose }: { init: Partial<EventInput>; onCl
           {freq !== 'none' && (
             <label className="field">
               <span>いつまで</span>
-              <input
-                type="date"
-                value={until}
-                min={date}
-                onChange={(e) => e.target.value && setUntil(e.target.value)}
-              />
+              <PickerInput type="date" value={until} min={date} onPick={setUntil} />
             </label>
           )}
         </div>

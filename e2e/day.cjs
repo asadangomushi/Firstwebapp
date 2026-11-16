@@ -119,6 +119,39 @@ const assert = (c, m) => {
     a4.title === '数学（自習）' && a4.end.endsWith('T10:45'),
     `編集欄で直せる (${a4.title} ${a4.end})`,
   );
+  // スマホの時刻選択は、値を欄に直接書き込む。知らせ（input / change）が来なくても保存されること
+  await page.locator('.actual-editor input[aria-label="開始時刻"]').focus();
+  await page.evaluate(() => {
+    document.querySelector('.actual-editor input[aria-label="開始時刻"]').valueAsNumber =
+      9 * 3600000;
+  });
+  await page.waitForTimeout(700);
+  const a4b = await page.evaluate(
+    async () =>
+      (await window.__techo.db.actuals.toArray()).filter((a) =>
+        a.start.startsWith(window.__techo.date.today()),
+      )[0],
+  );
+  assert(
+    a4b.start.endsWith('T09:00') && a4b.end.endsWith('T10:45'),
+    `知らせなしで値が変わっても保存される (${a4b.start})`,
+  );
+  const shown = await page.locator('.actual-col .block.sel .block-time').textContent();
+  assert(shown.startsWith('9:00–10:45'), `カレンダーの表示も変わる (${shown})`);
+  // ドラッグで動かしたら、入力欄の表示も追いかける
+  const b2 = await page.locator('.actual-col .block.sel').boundingBox();
+  await page.mouse.move(b2.x + b2.width / 2, b2.y + b2.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(b2.x + b2.width / 2, b2.y + b2.height / 2 + 24, { steps: 4 });
+  await page.mouse.up();
+  await page.waitForTimeout(300);
+  const fields = await page
+    .locator('.actual-editor input[type="time"]')
+    .evaluateAll((els) => els.map((e) => e.value).join('–'));
+  assert(fields === '09:30–11:15', `ドラッグ後の時刻が入力欄に出る (${fields})`);
+  await page.locator('.actual-editor input[aria-label="開始時刻"]').fill('09:15');
+  await page.locator('.actual-editor input[aria-label="終了時刻"]').fill('10:45');
+  await page.waitForTimeout(300);
   await page.locator('.actual-editor button[aria-label="編集を終える"]').click();
 
   // 空いているところを押して実績を直接つくる

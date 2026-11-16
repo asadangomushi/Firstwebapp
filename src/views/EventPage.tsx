@@ -14,7 +14,7 @@ import {
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import { CheckSection, ExamSection, FilesSection, LinksSection } from '../components/EventSections';
 import { PlanSection, RelatedSection } from '../components/RelationSections';
-import { CommitInput, Empty, IconBtn, Segmented } from '../components/ui';
+import { CommitInput, Empty, IconBtn, PickerInput, Segmented } from '../components/ui';
 import { chipVars } from '../lib/colors';
 import { useData } from '../lib/data';
 import { addDays, addMinutes, diffDays, diffMinutes, fmtEventWhen } from '../lib/date';
@@ -283,26 +283,23 @@ function WhenEditor({
     const last = addDays(e.end, -1);
     return (
       <div className="when">
-        <input
+        <PickerInput
           type="date"
           value={e.start}
           aria-label="開始日"
           disabled={disabled}
-          onChange={(ev) => {
-            const v = ev.target.value;
-            if (!v) return;
+          onPick={(v) => {
             onChange({ start: v, end: addDays(e.end, diffDays(e.start, v)) });
           }}
         />
         <span className="sep">–</span>
-        <input
+        <PickerInput
           type="date"
           value={last}
           min={e.start}
           aria-label="終了日"
           disabled={disabled}
-          onChange={(ev) => {
-            const v = ev.target.value;
+          onPick={(v) => {
             if (v) onChange({ end: addDays(v < e.start ? e.start : v, 1) });
           }}
         />
@@ -319,43 +316,37 @@ function WhenEditor({
     <div className="when">
       {compact ? (
         <>
-          <input
+          <PickerInput
             type="date"
             value={day}
             aria-label="日付"
             disabled={disabled}
-            onChange={(ev) => {
-              const v = ev.target.value;
-              if (!v) return;
+            onPick={(v) => {
               const start = v + e.start.slice(10);
               onChange({ start, end: addMinutes(start, dur) });
             }}
           />
           <div className="time-pair">
-            <input
+            <PickerInput
               type="time"
               step={300}
               value={e.start.slice(11)}
               aria-label="開始時刻"
               disabled={disabled}
-              onChange={(ev) => {
-                const v = ev.target.value;
-                if (!v) return;
+              onPick={(v) => {
                 // 開始を動かしたら長さはそのままにする
                 const start = `${day}T${v}`;
                 onChange({ start, end: addMinutes(start, dur) });
               }}
             />
             <span className="sep">–</span>
-            <input
+            <PickerInput
               type="time"
               step={300}
               value={e.end.slice(11)}
               aria-label="終了時刻"
               disabled={disabled}
-              onChange={(ev) => {
-                const v = ev.target.value;
-                if (!v) return;
+              onPick={(v) => {
                 const endDay = v <= e.start.slice(11) ? addDays(day, 1) : day;
                 onChange({ end: `${endDay}T${v}` });
               }}
@@ -365,25 +356,23 @@ function WhenEditor({
         </>
       ) : (
         <>
-          <input
+          <PickerInput
             type="datetime-local"
             value={e.start}
             aria-label="開始"
             disabled={disabled}
-            onChange={(ev) => {
-              const v = ev.target.value.slice(0, 16);
+            onPick={(v) => {
               if (v) onChange({ start: v, end: addMinutes(v, dur) });
             }}
           />
           <span className="sep">–</span>
-          <input
+          <PickerInput
             type="datetime-local"
             value={e.end}
             min={e.start}
             aria-label="終了"
             disabled={disabled}
-            onChange={(ev) => {
-              const v = ev.target.value.slice(0, 16);
+            onPick={(v) => {
               if (v && v > e.start) onChange({ end: v });
             }}
           />

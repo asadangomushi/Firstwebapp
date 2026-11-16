@@ -462,6 +462,14 @@ function DataSettings() {
           }}
         />
       </div>
+      <p className="section-hint">
+        この版：
+        {new Date(__BUILD_TIME__).toLocaleString('ja-JP', {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        })}{' '}
+        に作成
+      </p>
     </section>
   );
 }
