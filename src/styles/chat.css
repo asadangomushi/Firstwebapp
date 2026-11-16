@@ -1,0 +1,163 @@
+/* Claudeのパネル */
+.chat {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  width: 380px;
+  margin: 0 12px 12px 0;
+  border-radius: 24px;
+  background: var(--bg);
+  overflow: hidden;
+}
+.chat-head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 8px 6px 20px;
+  color: var(--primary);
+}
+.chat-head h2 {
+  flex: 1;
+  color: var(--text);
+}
+.chat-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  padding: 8px 16px 16px;
+  overflow-y: auto;
+}
+.chat-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 8px;
+  color: var(--text-2);
+}
+.chat-examples {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.chat-examples .btn {
+  min-height: 36px;
+  font-weight: 400;
+  white-space: normal;
+  text-align: left;
+}
+.msg {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 100%;
+}
+.msg.user {
+  align-self: flex-end;
+  max-width: 88%;
+  padding: 8px 14px;
+  border-radius: 18px 18px 4px 18px;
+  background: var(--primary-soft);
+  color: var(--on-primary-soft);
+}
+.msg-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.msg.error .msg-text {
+  color: var(--danger);
+}
+.msg-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.msg-actions li > * {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-2);
+  color: var(--text-2);
+  font-size: 12px;
+  text-align: left;
+}
+.msg-actions button {
+  cursor: pointer;
+}
+.msg-actions button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.msg-wait {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+.typing {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: pulse 1s ease-in-out infinite;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.25;
+    transform: scale(0.7);
+  }
+}
+.chat-form {
+  display: flex;
+  flex: none;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px 12px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+}
+.chat-form textarea {
+  flex: 1;
+  max-height: 140px;
+  border-radius: 18px;
+  resize: none;
+}
+.chat-send {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--on-primary);
+  cursor: pointer;
+}
+.chat-send:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.chat-btn {
+  color: var(--primary);
+}
+
+@media (max-width: 900px) {
+  /* 狭い画面では全面に重ねる */
+  .chat {
+    position: fixed;
+    inset: 0;
+    z-index: 45;
+    width: auto;
+    margin: 0;
+    border-radius: 0;
+  }
+}

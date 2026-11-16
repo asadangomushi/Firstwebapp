@@ -8,6 +8,7 @@ import {
   Menu,
   NotebookPen,
   RefreshCw,
+  Sparkles,
   Star,
 } from 'lucide-react';
 import {
@@ -92,6 +93,14 @@ export function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
           <span className="header-title-text">{title}</span>
         </h1>
         <div className="h-tools">
+          <IconBtn
+            label="Claudeに頼む"
+            className="chat-btn"
+            aria-pressed={ui.chatOpen}
+            onClick={() => (ui.chatOpen ? ui.closeChat() : ui.openChat())}
+          >
+            <Sparkles size={20} />
+          </IconBtn>
           <SyncButton />
         </div>
         {dated && (

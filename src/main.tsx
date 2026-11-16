@@ -8,6 +8,7 @@ import './styles/shell.css';
 import './styles/calendar.css';
 import './styles/pages.css';
 import './styles/day.css';
+import './styles/chat.css';
 
 applyTheme();
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);

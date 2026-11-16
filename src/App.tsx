@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ChatPanel } from './components/ChatPanel';
 import { ConfirmHost, Toast } from './components/Overlays';
 import { EventDialog } from './components/EventDialog';
 import { Header } from './components/Header';
@@ -96,6 +97,7 @@ function Shell() {
         <main className="main" id="main">
           {data.ready ? view : null}
         </main>
+        {ui.chatOpen && <ChatPanel />}
       </div>
       {isCalView(route) && (
         <button
