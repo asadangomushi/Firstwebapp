@@ -254,8 +254,15 @@ input[type='checkbox'] {
 .field-row > input[type='date'] {
   flex: 1 1 140px;
 }
-.field-row > input[type='time'] {
-  flex: 1 1 96px;
+.time-pair {
+  display: flex;
+  flex: 1 1 220px;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.time-pair input[type='time'] {
+  flex: 1;
 }
 .sep {
   color: var(--muted);
@@ -383,11 +390,6 @@ input[type='checkbox'] {
 }
 
 /* ---- 共通の小物 ---- */
-.dot {
-  display: inline-block;
-  flex: none;
-  border-radius: 50%;
-}
 .spacer {
   flex: 1;
 }

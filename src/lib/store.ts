@@ -1,14 +1,6 @@
 // データを書き換える操作はすべてここを通す。
 // 端末に保存 → 必要ならGoogleカレンダーへ送る、の順。
-import {
-  addDays,
-  addMinutes,
-  addMonths,
-  diffDays,
-  diffMinutes,
-  endKey,
-  startKey,
-} from './date';
+import { addDays, addMinutes, addMonths, diffDays, diffMinutes, endKey, startKey } from './date';
 import { LOCAL_CALENDAR, db, newId } from './db';
 import {
   createRecurringOnGoogle,
@@ -265,7 +257,10 @@ async function removeRows(rows: PlannerEvent[]): Promise<void> {
   const ids = new Set(rows.map((r) => r.id));
   await db.transaction('rw', db.events, db.files, async () => {
     // 逆算計画のステップは親と一緒に消す
-    const children = await db.events.where('parentId').anyOf([...ids]).toArray();
+    const children = await db.events
+      .where('parentId')
+      .anyOf([...ids])
+      .toArray();
     for (const c of children) ids.add(c.id);
     // つながりを相手側からも外す
     const all = await db.events.toArray();
@@ -277,7 +272,10 @@ async function removeRows(rows: PlannerEvent[]): Promise<void> {
         });
       }
     }
-    await db.files.where('eventId').anyOf([...ids]).delete();
+    await db.files
+      .where('eventId')
+      .anyOf([...ids])
+      .delete();
     await db.events.bulkDelete([...ids]);
   });
 }
@@ -320,10 +318,16 @@ export async function unlinkEvents(a: string, b: string): Promise<void> {
     const [ea, eb] = await Promise.all([db.events.get(a), db.events.get(b)]);
     const now = Date.now();
     if (ea) {
-      await db.events.update(a, { relatedIds: ea.relatedIds.filter((x) => x !== b), updatedAt: now });
+      await db.events.update(a, {
+        relatedIds: ea.relatedIds.filter((x) => x !== b),
+        updatedAt: now,
+      });
     }
     if (eb) {
-      await db.events.update(b, { relatedIds: eb.relatedIds.filter((x) => x !== a), updatedAt: now });
+      await db.events.update(b, {
+        relatedIds: eb.relatedIds.filter((x) => x !== a),
+        updatedAt: now,
+      });
     }
   });
 }

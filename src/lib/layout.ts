@@ -1,5 +1,5 @@
 // カレンダーの配置計算（重なった予定を横に並べる／月表示で帯を段に割り振る）。
-import { addDays, isLong, lastDay, startKey } from './date';
+import { isLong, lastDay, startKey } from './date';
 
 export interface Box<T> {
   item: T;
@@ -72,10 +72,7 @@ export function layoutWeek<T extends Span>(days: string[], items: T[]): WeekBar<
 
   const bars = items
     .filter(isBar)
-    .sort(
-      (a, b) =>
-        startKey(a).localeCompare(startKey(b)) || lastDay(b).localeCompare(lastDay(a)),
-    );
+    .sort((a, b) => startKey(a).localeCompare(startKey(b)) || lastDay(b).localeCompare(lastDay(a)));
   const singles = items
     .filter((e) => !isBar(e))
     .sort((a, b) => startKey(a).localeCompare(startKey(b)));
@@ -118,7 +115,15 @@ export function layoutWeek<T extends Span>(days: string[], items: T[]): WeekBar<
   for (const e of singles) {
     const c = idx(e.start.slice(0, 10));
     if (c === -1) continue;
-    out.push({ item: e, col: c, span: 1, lane: place(c, c), contLeft: false, contRight: false, bar: false });
+    out.push({
+      item: e,
+      col: c,
+      span: 1,
+      lane: place(c, c),
+      contLeft: false,
+      contRight: false,
+      bar: false,
+    });
   }
   return out;
 }
@@ -149,8 +154,4 @@ export function fitWeek<T>(
     else shown.push(b);
   }
   return { shown, more };
-}
-
-export function rangeDays(from: string, count: number): string[] {
-  return Array.from({ length: count }, (_, i) => addDays(from, i));
 }

@@ -38,13 +38,10 @@ function write(next: InboxLink[]): void {
 }
 
 export function useInboxLinks(): InboxLink[] {
-  return useSyncExternalStore(
-    (l) => {
-      listeners.add(l);
-      return () => listeners.delete(l);
-    },
-    read,
-  );
+  return useSyncExternalStore((l) => {
+    listeners.add(l);
+    return () => listeners.delete(l);
+  }, read);
 }
 
 export function removeInboxLink(id: string): void {
@@ -62,7 +59,8 @@ export function linksFromText(text: string): Array<{ label: string; url: string 
   const out: Array<{ label: string; url: string }> = [];
   for (const raw of urls) {
     const url = normalizeUrl(raw);
-    if (url) out.push({ label: title && urls.length === 1 ? title.slice(0, 80) : linkLabel(url), url });
+    if (url)
+      out.push({ label: title && urls.length === 1 ? title.slice(0, 80) : linkLabel(url), url });
   }
   return out;
 }

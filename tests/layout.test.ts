@@ -31,7 +31,12 @@ describe('1日の中の重なり', () => {
 
 describe('月表示の段の割り振り', () => {
   const days = weekDays('2026-11-23', 1); // 11/23(月)〜11/29(日)
-  const ev = (id: string, start: string, end: string, allDay = false) => ({ id, start, end, allDay });
+  const ev = (id: string, start: string, end: string, allDay = false) => ({
+    id,
+    start,
+    end,
+    allDay,
+  });
 
   it('複数日の帯は先に置かれ、週をまたぐと切られる', () => {
     const trip = ev('trip', '2026-11-27', '2026-12-01', true);
@@ -54,7 +59,11 @@ describe('月表示の段の割り振り', () => {
 
   it('入りきらない分は「他n件」になる', () => {
     const many = Array.from({ length: 5 }, (_, i) =>
-      ev(`e${i}`, `2026-11-24T${String(9 + i).padStart(2, '0')}:00`, `2026-11-24T${String(10 + i).padStart(2, '0')}:00`),
+      ev(
+        `e${i}`,
+        `2026-11-24T${String(9 + i).padStart(2, '0')}:00`,
+        `2026-11-24T${String(10 + i).padStart(2, '0')}:00`,
+      ),
     );
     const { shown, more } = fitWeek(layoutWeek(days, many), 3);
     // 3段のうち最後の1段は「他n件」に使う

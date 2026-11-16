@@ -12,12 +12,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useState, type CSSProperties, type ReactNode } from 'react';
-import {
-  CheckSection,
-  ExamSection,
-  FilesSection,
-  LinksSection,
-} from '../components/EventSections';
+import { CheckSection, ExamSection, FilesSection, LinksSection } from '../components/EventSections';
 import { PlanSection, RelatedSection } from '../components/RelationSections';
 import { CommitInput, Empty, IconBtn, Segmented } from '../components/ui';
 import { chipVars } from '../lib/colors';
@@ -119,8 +114,7 @@ export function EventPage({ id }: { id: string }) {
             className="crumb"
             onClick={() => navigate({ name: 'event', id: parent.id })}
           >
-            <CornerLeftUp size={14} />
-            「{parent.title}」の計画ステップ
+            <CornerLeftUp size={14} />「{parent.title}」の計画ステップ
           </button>
         )}
         <CommitInput
@@ -219,7 +213,9 @@ export function EventPage({ id }: { id: string }) {
           )}
         </Row>
         {e.recurring && (
-          <p className="row-note">種類・プロジェクト・月表示の設定は、繰り返しのすべての回に効きます。</p>
+          <p className="row-note">
+            種類・プロジェクト・月表示の設定は、繰り返しのすべての回に効きます。
+          </p>
         )}
         <Row icon={<CalendarDays size={18} />} label="カレンダー">
           <span>
@@ -274,7 +270,13 @@ function Row({ icon, label, children }: { icon: ReactNode; label: string; childr
 }
 
 /** 日時の編集。同じ日（または翌朝まで）の予定は「日付＋開始＋終了」で手早く直せる。 */
-function WhenEditor({ e, onChange }: { e: Resolved; onChange: (p: Partial<PlannerEvent>) => void }) {
+function WhenEditor({
+  e,
+  onChange,
+}: {
+  e: Resolved;
+  onChange: (p: Partial<PlannerEvent>) => void;
+}) {
   const disabled = !e.editable;
 
   if (e.allDay) {
@@ -329,35 +331,37 @@ function WhenEditor({ e, onChange }: { e: Resolved; onChange: (p: Partial<Planne
               onChange({ start, end: addMinutes(start, dur) });
             }}
           />
-          <input
-            type="time"
-            step={300}
-            value={e.start.slice(11)}
-            aria-label="開始時刻"
-            disabled={disabled}
-            onChange={(ev) => {
-              const v = ev.target.value;
-              if (!v) return;
-              // 開始を動かしたら長さはそのままにする
-              const start = `${day}T${v}`;
-              onChange({ start, end: addMinutes(start, dur) });
-            }}
-          />
-          <span className="sep">–</span>
-          <input
-            type="time"
-            step={300}
-            value={e.end.slice(11)}
-            aria-label="終了時刻"
-            disabled={disabled}
-            onChange={(ev) => {
-              const v = ev.target.value;
-              if (!v) return;
-              const endDay = v <= e.start.slice(11) ? addDays(day, 1) : day;
-              onChange({ end: `${endDay}T${v}` });
-            }}
-          />
-          {e.end.slice(0, 10) !== day && <span className="hint">翌日</span>}
+          <div className="time-pair">
+            <input
+              type="time"
+              step={300}
+              value={e.start.slice(11)}
+              aria-label="開始時刻"
+              disabled={disabled}
+              onChange={(ev) => {
+                const v = ev.target.value;
+                if (!v) return;
+                // 開始を動かしたら長さはそのままにする
+                const start = `${day}T${v}`;
+                onChange({ start, end: addMinutes(start, dur) });
+              }}
+            />
+            <span className="sep">–</span>
+            <input
+              type="time"
+              step={300}
+              value={e.end.slice(11)}
+              aria-label="終了時刻"
+              disabled={disabled}
+              onChange={(ev) => {
+                const v = ev.target.value;
+                if (!v) return;
+                const endDay = v <= e.start.slice(11) ? addDays(day, 1) : day;
+                onChange({ end: `${endDay}T${v}` });
+              }}
+            />
+            {e.end.slice(0, 10) !== day && <span className="hint">翌日</span>}
+          </div>
         </>
       ) : (
         <>
@@ -390,7 +394,13 @@ function WhenEditor({ e, onChange }: { e: Resolved; onChange: (p: Partial<Planne
   );
 }
 
-function AllDayToggle({ e, onChange }: { e: Resolved; onChange: (p: Partial<PlannerEvent>) => void }) {
+function AllDayToggle({
+  e,
+  onChange,
+}: {
+  e: Resolved;
+  onChange: (p: Partial<PlannerEvent>) => void;
+}) {
   return (
     <label className="check-line">
       <input

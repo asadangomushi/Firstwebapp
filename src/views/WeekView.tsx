@@ -2,7 +2,15 @@
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { EventChip, KindIcon } from '../components/EventChip';
-import { HOUR, HourGutter, NowLine, boxStyle, pxToMinutes, rangeLabel, useNow } from '../components/TimeGrid';
+import {
+  HOUR,
+  HourGutter,
+  NowLine,
+  boxStyle,
+  pxToMinutes,
+  rangeLabel,
+  useNow,
+} from '../components/TimeGrid';
 import { chipVars } from '../lib/colors';
 import { useData } from '../lib/data';
 import {
@@ -92,7 +100,10 @@ export function WeekView({ days }: { days: string[] }) {
               </button>
             )}
           </div>
-          <div className="tg-allday-grid" style={{ ...cols, gridTemplateRows: `repeat(${lanes}, var(--lane-h))` }}>
+          <div
+            className="tg-allday-grid"
+            style={{ ...cols, gridTemplateRows: `repeat(${lanes}, var(--lane-h))` }}
+          >
             {shown.map((b) => (
               <EventChip
                 key={b.item.id}

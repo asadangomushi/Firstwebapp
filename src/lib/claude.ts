@@ -246,14 +246,19 @@ function buildTools(ctx: ChatContext, act: (a: Omit<ChatAction, 'id'>) => void) 
           .filter((e) => !q || e.title.toLowerCase().includes(q))
           .sort((a, b) => startKey(a).localeCompare(startKey(b)))
           .map((e) => brief(resolveEvent(e, lk)));
-        return json({ count: list.length, events: list.slice(0, 120), truncated: list.length > 120 });
+        return json({
+          count: list.length,
+          events: list.slice(0, 120),
+          truncated: list.length > 120,
+        });
       }),
     }),
 
     betaZodTool({
       ...eager,
       name: 'get_event',
-      description: '予定1件のくわしい内容（メモ、リンク、持ち物、提出物、試験内容、関連する予定、計画ステップ）を返す。',
+      description:
+        '予定1件のくわしい内容（メモ、リンク、持ち物、提出物、試験内容、関連する予定、計画ステップ）を返す。',
       inputSchema: z.object({ id: z.string() }),
       run: safe(async ({ id }) => {
         const { r, lk } = await getEvent(id);
@@ -287,7 +292,9 @@ function buildTools(ctx: ChatContext, act: (a: Omit<ChatAction, 'id'>) => void) 
       inputSchema: z.object({
         title: z.string().min(1),
         start: DATETIME.describe('開始。終日なら日付だけ'),
-        end: DATETIME.optional().describe('終了。終日の場合は最後の日（その日を含む）。省略すると1時間（終日は1日）'),
+        end: DATETIME.optional().describe(
+          '終了。終日の場合は最後の日（その日を含む）。省略すると1時間（終日は1日）',
+        ),
         all_day: z.boolean().optional(),
         kind: KIND.optional().describe('normal=ふつうの予定 / exam=テスト / task=課題・締切'),
         category: z.string().optional().describe('予定の種類の名前（一覧にあるもの）'),
@@ -374,8 +381,10 @@ function buildTools(ctx: ChatContext, act: (a: Omit<ChatAction, 'id'>) => void) 
           await updateEvent(e.id, patch, input.apply_to_series ? 'all' : 'one');
         }
         const meta: Parameters<typeof setEventMeta>[1] = {};
-        if (input.category !== undefined) meta.categoryId = (await categoryId(input.category, lk)) ?? null;
-        if (input.project !== undefined) meta.projectId = (await projectId(input.project, lk)) ?? null;
+        if (input.category !== undefined)
+          meta.categoryId = (await categoryId(input.category, lk)) ?? null;
+        if (input.project !== undefined)
+          meta.projectId = (await projectId(input.project, lk)) ?? null;
         if (input.show_in_month !== undefined) meta.monthVisible = input.show_in_month;
         if (Object.keys(meta).length) await setEventMeta(e, meta);
         const after = (await db.events.get(e.id)) ?? e;
@@ -391,7 +400,10 @@ function buildTools(ctx: ChatContext, act: (a: Omit<ChatAction, 'id'>) => void) 
         '予定を削除する。ユーザーがはっきり削除を頼んだときだけ呼ぶ。実行前にアプリがユーザーへ確認を出す。',
       inputSchema: z.object({
         id: z.string(),
-        whole_series: z.boolean().optional().describe('繰り返しの予定をすべての回まとめて消すなら true'),
+        whole_series: z
+          .boolean()
+          .optional()
+          .describe('繰り返しの予定をすべての回まとめて消すなら true'),
       }),
       run: safe(async ({ id, whole_series }) => {
         const { e } = await getEvent(id);
@@ -455,13 +467,19 @@ function buildTools(ctx: ChatContext, act: (a: Omit<ChatAction, 'id'>) => void) 
       inputSchema: z.object({
         event_id: z.string().describe('締切やテストの予定のid'),
         steps: z
-          .array(z.object({ title: z.string().min(1), date: DATE.describe('そのステップをやる日') }))
+          .array(
+            z.object({ title: z.string().min(1), date: DATE.describe('そのステップをやる日') }),
+          )
           .min(1),
       }),
       run: safe(async ({ event_id, steps }) => {
         const { r } = await getEvent(event_id);
         for (const s of steps) {
-          await addStep({ id: r.id, categoryId: r.cat?.id, projectId: r.project?.id }, s.title, s.date);
+          await addStep(
+            { id: r.id, categoryId: r.cat?.id, projectId: r.project?.id },
+            s.title,
+            s.date,
+          );
         }
         act({ text: `計画ステップを${steps.length}件追加（${r.title}）`, eventId: r.id });
         return json({ ok: true, added: steps.length });
@@ -471,7 +489,8 @@ function buildTools(ctx: ChatContext, act: (a: Omit<ChatAction, 'id'>) => void) 
     betaZodTool({
       ...eager,
       name: 'link_events',
-      description: '2つの予定をつなげる（例：試験と出願日・入金期限）。つなげると、互いのページからすぐ開ける。',
+      description:
+        '2つの予定をつなげる（例：試験と出願日・入金期限）。つなげると、互いのページからすぐ開ける。',
       inputSchema: z.object({ event_id: z.string(), related_event_id: z.string() }),
       run: safe(async ({ event_id, related_event_id }) => {
         const a = await getEvent(event_id);
@@ -485,7 +504,8 @@ function buildTools(ctx: ChatContext, act: (a: Omit<ChatAction, 'id'>) => void) 
     betaZodTool({
       ...eager,
       name: 'log_actual',
-      description: '実績（実際にその時間に何をしていたか）を記録する。「さっき2時間勉強した」のような報告を受けたときに呼ぶ。',
+      description:
+        '実績（実際にその時間に何をしていたか）を記録する。「さっき2時間勉強した」のような報告を受けたときに呼ぶ。',
       inputSchema: z.object({
         title: z.string().min(1),
         start: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, 'YYYY-MM-DDTHH:mm の形式'),
@@ -495,8 +515,16 @@ function buildTools(ctx: ChatContext, act: (a: Omit<ChatAction, 'id'>) => void) 
       run: safe(async ({ title, start, end, category }) => {
         if (end <= start) throw new Error('終了は開始より後にしてください');
         const lk = await lookup();
-        await addActual({ title, start, end, categoryId: await categoryId(category, lk), memo: '' });
-        act({ text: `実績を記録：${title}（${fmtDayShort(start)} ${fmtTime(start)}–${fmtTime(end)}）` });
+        await addActual({
+          title,
+          start,
+          end,
+          categoryId: await categoryId(category, lk),
+          memo: '',
+        });
+        act({
+          text: `実績を記録：${title}（${fmtDayShort(start)} ${fmtTime(start)}–${fmtTime(end)}）`,
+        });
         return json({ ok: true });
       }),
     }),
@@ -530,7 +558,12 @@ async function dynamicSystem(): Promise<string> {
   ]);
   return [
     `予定の種類: ${categories.map((c) => c.name).join('、') || '（未設定）'}`,
-    `プロジェクト: ${projects.filter((p) => !p.archived).map((p) => p.name).join('、') || '（なし）'}`,
+    `プロジェクト: ${
+      projects
+        .filter((p) => !p.archived)
+        .map((p) => p.name)
+        .join('、') || '（なし）'
+    }`,
   ].join('\n');
 }
 
@@ -644,20 +677,28 @@ export async function sendChat(text: string, ctx: ChatContext): Promise<void> {
           const hasToolUse = message.content.some((b) => b.type === 'tool_use');
           // 途中で切れた入力や、断られた回のツールは実行しない
           if (message.stop_reason === 'max_tokens' && hasToolUse) {
-            throw new Stopped('返事が長くなりすぎて途中で切れました。もう少し小さく分けて頼んでみてください。');
+            throw new Stopped(
+              '返事が長くなりすぎて途中で切れました。もう少し小さく分けて頼んでみてください。',
+            );
           }
           if (message.stop_reason === 'refusal') {
-            throw new Stopped('この内容にはお答えできませんでした。言い方を変えて試してみてください。');
+            throw new Stopped(
+              'この内容にはお答えできませんでした。言い方を変えて試してみてください。',
+            );
           }
           // 次の文章との間に区切りを入れる（ツールを使ったあとに続きを話すとき）
-          if (hasToolUse) patchLast((m) => (m.text ? { ...m, text: `${m.text.trimEnd()}\n\n` } : m));
+          if (hasToolUse)
+            patchLast((m) => (m.text ? { ...m, text: `${m.text.trimEnd()}\n\n` } : m));
         }
         break;
       } catch (err) {
         if (err instanceof Anthropic.APIError || err instanceof Stopped || attempt >= 2) throw err;
         if (controller.signal.aborted) throw err;
         // ツールの入力が壊れて届いたときだけ、同じ回をやり直す
-        runner = client.beta.messages.toolRunner({ ...runner.params }, { signal: controller.signal });
+        runner = client.beta.messages.toolRunner(
+          { ...runner.params },
+          { signal: controller.signal },
+        );
       }
     }
 
@@ -679,13 +720,20 @@ export async function sendChat(text: string, ctx: ChatContext): Promise<void> {
       if (fallback && nothingYet && err instanceof Anthropic.BadRequestError) await run(false);
       else throw err;
     }
-    patchLast((m) => ({ ...m, text: m.text.trim() || (m.actions.length ? '完了しました。' : '（返事がありませんでした）') }));
+    patchLast((m) => ({
+      ...m,
+      text: m.text.trim() || (m.actions.length ? '完了しました。' : '（返事がありませんでした）'),
+    }));
   } catch (err) {
     if (controller.signal.aborted) {
       patchLast((m) => ({ ...m, text: `${m.text.trim()}\n（中止しました）`.trim() }));
     } else {
       const msg = err instanceof Stopped ? err.message : describe(err);
-      patchLast((m) => ({ ...m, error: true, text: m.text.trim() ? `${m.text.trim()}\n\n${msg}` : msg }));
+      patchLast((m) => ({
+        ...m,
+        error: true,
+        text: m.text.trim() ? `${m.text.trim()}\n\n${msg}` : msg,
+      }));
     }
   } finally {
     abort = null;

@@ -52,7 +52,11 @@ export function Legend({ items, showShare = false }: { items: Total[]; showShare
     <ul className="legend">
       {items.map((t) => (
         <li key={t.key}>
-          <span className="legend-swatch" style={{ background: fill(t.color) }} aria-hidden="true" />
+          <span
+            className="legend-swatch"
+            style={{ background: fill(t.color) }}
+            aria-hidden="true"
+          />
           <span className="legend-name">{t.label}</span>
           <span className="legend-value">
             {fmtDuration(t.minutes)}

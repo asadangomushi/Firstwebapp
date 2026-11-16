@@ -63,7 +63,8 @@ function CategorySettings() {
     <section className="card">
       <h2>予定の種類</h2>
       <p className="section-hint">
-        勉強・運動・バイトなどの分類です。予定を作るときにここから選びます。「キーワード」に入れた語がタイトルに含まれる予定は、自動でその種類になります（例：勉強 ← 数学）。
+        勉強・運動・バイトなどの分類です。予定を作るときにここから選びます。「キーワード」に入れた語がタイトルに含まれる予定は、自動でその種類になります（例：勉強
+        ← 数学）。
       </p>
       <ul className="cat-list">
         {data.categories.map((c, i) => (
@@ -128,7 +129,9 @@ function CategorySettings() {
                 <span>月表示</span>
                 <select
                   value={c.monthMode}
-                  onChange={(e) => void saveCategory({ ...c, monthMode: e.target.value as MonthMode })}
+                  onChange={(e) =>
+                    void saveCategory({ ...c, monthMode: e.target.value as MonthMode })
+                  }
                 >
                   <option value="auto">自動（繰り返しは隠す）</option>
                   <option value="show">いつも出す</option>
@@ -200,10 +203,12 @@ function GoogleSettings() {
           </li>
           <li>「APIとサービス」→「ライブラリ」で「Google Calendar API」を検索して有効にします。</li>
           <li>
-            「OAuth 同意画面」を設定します。ユーザーの種類は「外部」、テストユーザーに自分のGoogleアカウントを追加します。
+            「OAuth
+            同意画面」を設定します。ユーザーの種類は「外部」、テストユーザーに自分のGoogleアカウントを追加します。
           </li>
           <li>
-            「認証情報」→「認証情報を作成」→「OAuth クライアント ID」。種類は「ウェブ アプリケーション」を選び、「承認済みの JavaScript 生成元」に次のURLを追加します。
+            「認証情報」→「認証情報を作成」→「OAuth クライアント ID」。種類は「ウェブ
+            アプリケーション」を選び、「承認済みの JavaScript 生成元」に次のURLを追加します。
             <code className="code-line">{origin}</code>
           </li>
           <li>できた「クライアント ID」（…apps.googleusercontent.com）を下の欄に貼り付けます。</li>
@@ -312,7 +317,11 @@ function ClaudeSettings() {
       <label className="field">
         <span>
           APIキー（
-          <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://console.anthropic.com/settings/keys"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Anthropic Console
           </a>
           で作成）
@@ -400,7 +409,8 @@ function DataSettings() {
   const doImport = async (file: File) => {
     const ok = await ui.confirm({
       title: 'バックアップから復元',
-      message: '今この端末にある手帳のデータを、選んだバックアップの内容で置き換えます。元には戻せません。',
+      message:
+        '今この端末にある手帳のデータを、選んだバックアップの内容で置き換えます。元には戻せません。',
       actions: [{ label: '置き換える', value: 'yes', danger: true }],
     });
     if (!ok) return;
@@ -422,11 +432,21 @@ function DataSettings() {
         手帳のデータは、このブラウザの中だけに保存されています（別の端末には自動で同期されません）。機種変更の前や、ときどきバックアップを取っておくと安心です。
       </p>
       <div className="btn-row">
-        <button type="button" className="btn btn-tonal" disabled={busy} onClick={() => void doExport()}>
+        <button
+          type="button"
+          className="btn btn-tonal"
+          disabled={busy}
+          onClick={() => void doExport()}
+        >
           <Download size={18} />
           バックアップを保存
         </button>
-        <button type="button" className="btn btn-tonal" disabled={busy} onClick={() => input.current?.click()}>
+        <button
+          type="button"
+          className="btn btn-tonal"
+          disabled={busy}
+          onClick={() => input.current?.click()}
+        >
           <Upload size={18} />
           バックアップから復元
         </button>

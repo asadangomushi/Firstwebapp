@@ -58,7 +58,11 @@ export function DaySide({ date, events }: { date: string; events: Resolved[] }) 
           <h3>持ち物・提出物</h3>
           {withItems.map((e) => (
             <div key={e.id} className="side-group">
-              <button type="button" className="side-group-title" onClick={() => navigate({ name: 'event', id: e.id })}>
+              <button
+                type="button"
+                className="side-group-title"
+                onClick={() => navigate({ name: 'event', id: e.id })}
+              >
                 {e.title}
               </button>
               <ul className="side-list">
@@ -66,7 +70,11 @@ export function DaySide({ date, events }: { date: string; events: Resolved[] }) 
                   e[field].map((it) => (
                     <li key={it.id} className={it.done ? 'done' : ''}>
                       <label>
-                        <input type="checkbox" checked={it.done} onChange={() => toggle(e, field, it)} />
+                        <input
+                          type="checkbox"
+                          checked={it.done}
+                          onChange={() => toggle(e, field, it)}
+                        />
                         <span>
                           {it.text}
                           {field === 'submissions' && <small>提出物</small>}
@@ -84,7 +92,11 @@ export function DaySide({ date, events }: { date: string; events: Resolved[] }) 
       <section>
         <h3>
           日記
-          <button type="button" className="btn btn-text side-link" onClick={() => navigate({ name: 'diary', date })}>
+          <button
+            type="button"
+            className="btn btn-text side-link"
+            onClick={() => navigate({ name: 'diary', date })}
+          >
             <BookOpen size={15} />
             日記を開く
           </button>

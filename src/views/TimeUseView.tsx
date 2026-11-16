@@ -1,7 +1,13 @@
 // 週の画面：一週間分の実際の時間の使い方を、横棒の帯グラフで並べて見る。
 import { Table } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { Legend, StackedBars, TimelineBars, type BarRow, type TimelineRow } from '../components/Charts';
+import {
+  Legend,
+  StackedBars,
+  TimelineBars,
+  type BarRow,
+  type TimelineRow,
+} from '../components/Charts';
 import { Empty, Segmented } from '../components/ui';
 import { useData } from '../lib/data';
 import { WEEKDAYS, dayOfWeek, fmtDuration, fmtHours, isLong, today, weekDays } from '../lib/date';
@@ -37,7 +43,11 @@ export function TimeUseView({ date }: { date: string }) {
 
   // 色で見分けられる数を超えたら、少ない種類を「その他」にまとめる（週全体で決める）
   const weekRaw = totals(actual.flat(), data.categories);
-  const fold = foldKeys(settings.timeUseShowPlan ? totals([...actual.flat(), ...plan.flat()], data.categories) : weekRaw);
+  const fold = foldKeys(
+    settings.timeUseShowPlan
+      ? totals([...actual.flat(), ...plan.flat()], data.categories)
+      : weekRaw,
+  );
   const week = applyFold(weekRaw, fold);
   const dayTotals = (segs: Seg[]) => applyFold(totals(segs, data.categories), fold);
   const foldSeg = (s: Seg): Seg =>
@@ -46,7 +56,9 @@ export function TimeUseView({ date }: { date: string }) {
   const label = (d: string) => {
     const w = dayOfWeek(d);
     return (
-      <span className={`day-label ${d === now ? 'today' : ''} ${w === 0 ? 'sun' : w === 6 ? 'sat' : ''}`}>
+      <span
+        className={`day-label ${d === now ? 'today' : ''} ${w === 0 ? 'sun' : w === 6 ? 'sat' : ''}`}
+      >
         {Number(d.slice(5, 7))}/{Number(d.slice(8))}
         <small>{WEEKDAYS[w]}</small>
       </span>
@@ -68,8 +80,18 @@ export function TimeUseView({ date }: { date: string }) {
   const lineRows: TimelineRow[] = [];
   days.forEach((d, i) => {
     if (settings.timeUseShowPlan) {
-      barRows.push({ key: d + 'p', label: <span className="row-kind">予定</span>, totals: dayTotals(plan[i]), thin: true });
-      lineRows.push({ key: d + 'p', label: <span className="row-kind">予定</span>, segs: plan[i].map(foldSeg), thin: true });
+      barRows.push({
+        key: d + 'p',
+        label: <span className="row-kind">予定</span>,
+        totals: dayTotals(plan[i]),
+        thin: true,
+      });
+      lineRows.push({
+        key: d + 'p',
+        label: <span className="row-kind">予定</span>,
+        segs: plan[i].map(foldSeg),
+        thin: true,
+      });
     }
     barRows.push({ key: d, label: label(d), totals: dayTotals(actual[i]), onClick: open(d) });
     lineRows.push({ key: d, label: label(d), segs: actual[i].map(foldSeg), onClick: open(d) });
@@ -83,7 +105,9 @@ export function TimeUseView({ date }: { date: string }) {
             <span className="stat-label">この週に記録した時間</span>
             <span className="stat-value">{fmtDuration(weekSum)}</span>
             <span className="stat-sub">
-              {recordedDays > 0 ? `${recordedDays}日分・1日あたり ${fmtHours(weekSum / recordedDays)}` : 'まだ記録がありません'}
+              {recordedDays > 0
+                ? `${recordedDays}日分・1日あたり ${fmtHours(weekSum / recordedDays)}`
+                : 'まだ記録がありません'}
             </span>
           </div>
         </div>

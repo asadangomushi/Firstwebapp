@@ -1,13 +1,6 @@
 // どの画面でも使う小さな部品。
 import { Check, X } from 'lucide-react';
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ButtonHTMLAttributes,
-  type CSSProperties,
-  type ReactNode,
-} from 'react';
+import { useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { PALETTE, fill } from '../lib/colors';
 
 export function IconBtn({
@@ -17,7 +10,13 @@ export function IconBtn({
   ...rest
 }: { label: string; children: ReactNode } & ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button type="button" className={`icon-btn ${className}`} aria-label={label} title={label} {...rest}>
+    <button
+      type="button"
+      className={`icon-btn ${className}`}
+      aria-label={label}
+      title={label}
+      {...rest}
+    >
       {children}
     </button>
   );
@@ -48,7 +47,9 @@ export function Modal({
     };
     window.addEventListener('keydown', onKey);
     // 開いたら最初の入力欄へ
-    const first = ref.current?.querySelector<HTMLElement>('[data-autofocus], input, textarea, select');
+    const first = ref.current?.querySelector<HTMLElement>(
+      '[data-autofocus], input, textarea, select',
+    );
     first?.focus();
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
@@ -112,13 +113,7 @@ export function Segmented<T extends string>({
   );
 }
 
-export function ColorPicker({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (c: string) => void;
-}) {
+export function ColorPicker({ value, onChange }: { value: string; onChange: (c: string) => void }) {
   return (
     <div className="color-picker" role="radiogroup" aria-label="色">
       {PALETTE.map((p) => (
@@ -138,12 +133,6 @@ export function ColorPicker({
       ))}
     </div>
   );
-}
-
-/** 色つきの小さな丸 */
-export function Dot({ color, size = 10 }: { color: string; size?: number }) {
-  const style: CSSProperties = { background: fill(color), width: size, height: size };
-  return <span className="dot" style={style} aria-hidden="true" />;
 }
 
 /**
@@ -215,7 +204,9 @@ export function CommitInput({
   };
 
   if (multiline) {
-    return <textarea {...rest} value={text} onChange={(e) => change(e.target.value)} onBlur={commit} />;
+    return (
+      <textarea {...rest} value={text} onChange={(e) => change(e.target.value)} onBlur={commit} />
+    );
   }
   return (
     <input

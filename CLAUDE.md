@@ -7,7 +7,7 @@
 
 - `npm run dev` 開発サーバー / `npm run build` 型チェック＋ビルド
 - `npm test` 計算部分のテスト（vitest） / `npm run e2e` 画面操作のテスト（Playwright。API は偽物に差し替え）
-- 変更したら `npm run build` と `npm test`、画面に関わるなら `npm run e2e` を通す
+- 変更したら `npm run format`、`npm run build`、`npm test`、画面に関わるなら `npm run e2e` を通す
 
 ## 決まりごと
 

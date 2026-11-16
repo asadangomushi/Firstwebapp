@@ -11,7 +11,10 @@ import { setSettings, useSettings } from '../lib/settings';
 export function MonthView({ date }: { date: string }) {
   const data = useData();
   const settings = useSettings();
-  const weeks = useMemo(() => monthGrid(date, settings.weekStartsOn), [date, settings.weekStartsOn]);
+  const weeks = useMemo(
+    () => monthGrid(date, settings.weekStartsOn),
+    [date, settings.weekStartsOn],
+  );
   const month = date.slice(0, 7);
   const now = today();
   const gridRef = useRef<HTMLDivElement>(null);
@@ -63,7 +66,11 @@ export function MonthView({ date }: { date: string }) {
           </span>
         ))}
       </div>
-      <div className="month-grid" ref={gridRef} style={{ gridTemplateRows: `repeat(${weeks.length}, 1fr)` }}>
+      <div
+        className="month-grid"
+        ref={gridRef}
+        style={{ gridTemplateRows: `repeat(${weeks.length}, 1fr)` }}
+      >
         {weeks.map((days) => {
           const weekEnd = addDays(days[6], 1);
           const bars = layoutWeek(

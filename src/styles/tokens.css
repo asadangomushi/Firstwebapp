@@ -52,7 +52,8 @@
   --sidebar-w: 256px;
   --lane-h: 22px;
   --radius: 12px;
-  --font: 'Google Sans Text', 'Google Sans', Roboto, 'Noto Sans JP', 'Hiragino Sans',
+  --font:
+    'Google Sans Text', 'Google Sans', Roboto, 'Noto Sans JP', 'Hiragino Sans',
     'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, system-ui, sans-serif;
 }
 

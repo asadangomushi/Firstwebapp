@@ -225,11 +225,6 @@ export function lastDay(e: Span): string {
   return en.endsWith('T00:00') ? addDays(en.slice(0, 10), -1) : en.slice(0, 10);
 }
 
-/** 複数日にまたがるか（終日予定は1日でも帯として扱う） */
-export function isMultiDay(e: Span): boolean {
-  return lastDay(e) > e.start.slice(0, 10);
-}
-
 /** 終日、または24時間以上続く予定（時間の枠ではなく上の帯に出す） */
 export function isLong(e: Span): boolean {
   return !!e.allDay || e.start.length === 10 || diffMinutes(startKey(e), endKey(e)) >= MIN_PER_DAY;

@@ -33,7 +33,11 @@ self.addEventListener('message', (event) => {
       const cache = await caches.open(APP_CACHE);
       await Promise.all(
         data.urls
-          .filter((u) => typeof u === 'string' && new URL(u, self.location.href).origin === self.location.origin)
+          .filter(
+            (u) =>
+              typeof u === 'string' &&
+              new URL(u, self.location.href).origin === self.location.origin,
+          )
           .map((u) => cache.add(u).catch(() => undefined)),
       );
     })(),

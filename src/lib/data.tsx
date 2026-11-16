@@ -3,13 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { db } from './db';
 import { resolveEvent, type Lookup, type Resolved } from './resolve';
-import type {
-  Actual,
-  CalendarInfo,
-  DiaryEntry,
-  FileRec,
-  Project,
-} from './types';
+import type { Actual, CalendarInfo, DiaryEntry, FileRec, Project } from './types';
 
 export interface Data extends Lookup {
   ready: boolean;

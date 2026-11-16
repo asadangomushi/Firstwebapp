@@ -52,7 +52,12 @@ export function Sidebar() {
       <MiniCalendar date={date} onPick={pick} />
       <nav className="nav" aria-label="メニュー">
         {link({ name: 'month', date }, <CalendarDays size={18} />, 'カレンダー', isCalView(route))}
-        {link({ name: 'timeuse', date }, <BarChart3 size={18} />, '時間の使い方', route.name === 'timeuse')}
+        {link(
+          { name: 'timeuse', date },
+          <BarChart3 size={18} />,
+          '時間の使い方',
+          route.name === 'timeuse',
+        )}
         {link({ name: 'diary', date }, <BookOpen size={18} />, '日記', route.name === 'diary')}
         {link(
           { name: 'projects' },

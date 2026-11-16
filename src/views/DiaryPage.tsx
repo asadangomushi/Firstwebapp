@@ -57,7 +57,11 @@ export function DiaryPage({ date }: { date: string }) {
               <Legend items={totals(segs, data.categories)} />
             </>
           )}
-          <button type="button" className="btn btn-text" onClick={() => navigate({ name: 'day', date })}>
+          <button
+            type="button"
+            className="btn btn-text"
+            onClick={() => navigate({ name: 'day', date })}
+          >
             一日の画面を開く
           </button>
         </section>
@@ -65,11 +69,17 @@ export function DiaryPage({ date }: { date: string }) {
 
       <section className="card">
         <div className="diary-date">
-          <IconBtn label="前の月" onClick={() => navigate({ name: 'diary', date: addMonths(month + '-01', -1) })}>
+          <IconBtn
+            label="前の月"
+            onClick={() => navigate({ name: 'diary', date: addMonths(month + '-01', -1) })}
+          >
             <ChevronLeft size={20} />
           </IconBtn>
           <h3 className="section-title">{fmtMonthTitle(date)}の日記</h3>
-          <IconBtn label="次の月" onClick={() => navigate({ name: 'diary', date: addMonths(month + '-01', 1) })}>
+          <IconBtn
+            label="次の月"
+            onClick={() => navigate({ name: 'diary', date: addMonths(month + '-01', 1) })}
+          >
             <ChevronRight size={20} />
           </IconBtn>
         </div>

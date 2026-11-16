@@ -62,9 +62,7 @@ export function totals(segs: Seg[], categories: Category[]): Total[] {
     map.set(s.key, t);
   }
   const order = new Map(categories.map((c, i) => [c.id, i]));
-  return [...map.values()].sort(
-    (a, b) => (order.get(a.key) ?? 1e9) - (order.get(b.key) ?? 1e9),
-  );
+  return [...map.values()].sort((a, b) => (order.get(a.key) ?? 1e9) - (order.get(b.key) ?? 1e9));
 }
 
 /**

@@ -51,7 +51,13 @@ export function ChatPanel() {
       return p ? `プロジェクト「${p.name}」のページ` : 'プロジェクトのページ';
     }
     if ('date' in r) {
-      const label = { month: '月表示', week: '週表示', day: '一日の画面', timeuse: '時間の使い方', diary: '日記' }[r.name];
+      const label = {
+        month: '月表示',
+        week: '週表示',
+        day: '一日の画面',
+        timeuse: '時間の使い方',
+        diary: '日記',
+      }[r.name];
       return `${label}（${r.date} ${fmtDay(r.date)}）`;
     }
     return { projects: 'プロジェクト一覧', settings: '設定', inbox: '受信トレイ' }[r.name];
@@ -91,7 +97,12 @@ export function ChatPanel() {
             {settings.claudeApiKey ? (
               <div className="chat-examples">
                 {EXAMPLES.map((ex) => (
-                  <button key={ex} type="button" className="btn btn-outline" onClick={() => send(ex)}>
+                  <button
+                    key={ex}
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={() => send(ex)}
+                  >
                     {ex}
                   </button>
                 ))}
@@ -124,7 +135,10 @@ export function ChatPanel() {
                   {m.actions.map((a) => (
                     <li key={a.id}>
                       {a.eventId ? (
-                        <button type="button" onClick={() => navigate({ name: 'event', id: a.eventId! })}>
+                        <button
+                          type="button"
+                          onClick={() => navigate({ name: 'event', id: a.eventId! })}
+                        >
                           {a.text}
                         </button>
                       ) : (
@@ -169,11 +183,23 @@ export function ChatPanel() {
           }}
         />
         {chat.busy ? (
-          <button type="button" className="chat-send" aria-label="中止" title="中止" onClick={stopChat}>
+          <button
+            type="button"
+            className="chat-send"
+            aria-label="中止"
+            title="中止"
+            onClick={stopChat}
+          >
             <Square size={16} fill="currentColor" />
           </button>
         ) : (
-          <button type="submit" className="chat-send" aria-label="送信" title="送信" disabled={!text.trim()}>
+          <button
+            type="submit"
+            className="chat-send"
+            aria-label="送信"
+            title="送信"
+            disabled={!text.trim()}
+          >
             <ArrowUp size={20} />
           </button>
         )}

@@ -18,7 +18,11 @@ describe('Googleカレンダーとの変換', () => {
   });
 
   it('終日の予定と、題名のない予定', () => {
-    const core = fromGoogle({ id: 'g2', start: { date: '2026-11-21' }, end: { date: '2026-11-23' } });
+    const core = fromGoogle({
+      id: 'g2',
+      start: { date: '2026-11-21' },
+      end: { date: '2026-11-23' },
+    });
     expect(core).toEqual({
       title: '（タイトルなし）',
       start: '2026-11-21',
@@ -47,11 +51,19 @@ describe('Googleカレンダーとの変換', () => {
     expect(new Date(time.start.dateTime).getTime()).toBe(new Date(2026, 10, 18, 19, 0).getTime());
     // 終日から時間つきへ変えたとき、Google側の日付指定を消すために null を送る
     expect(time.start.date).toBeNull();
-    expect(Object.keys(toGoogle(e)).sort()).toEqual(['description', 'end', 'location', 'start', 'summary']);
+    expect(Object.keys(toGoogle(e)).sort()).toEqual([
+      'description',
+      'end',
+      'location',
+      'start',
+      'summary',
+    ]);
   });
 
   it('繰り返しのルール', () => {
-    expect(toRRule({ freq: 'weekly', until: '2027-03-31' }, true)).toBe('RRULE:FREQ=WEEKLY;UNTIL=20270331');
+    expect(toRRule({ freq: 'weekly', until: '2027-03-31' }, true)).toBe(
+      'RRULE:FREQ=WEEKLY;UNTIL=20270331',
+    );
     expect(toRRule({ freq: 'daily', until: '2027-03-31' }, false)).toMatch(
       /^RRULE:FREQ=DAILY;UNTIL=\d{8}T\d{6}Z$/,
     );
@@ -76,13 +88,17 @@ describe('繰り返しの各回', () => {
   });
 
   it('終了日が開始より前でも、最初の1回は作る', () => {
-    expect(occurrenceDates('2026-11-16', { freq: 'weekly', until: '2026-11-01' })).toEqual(['2026-11-16']);
+    expect(occurrenceDates('2026-11-16', { freq: 'weekly', until: '2026-11-01' })).toEqual([
+      '2026-11-16',
+    ]);
   });
 });
 
 describe('リンク', () => {
   it('http(s)とメール以外は受け付けない', () => {
-    expect(normalizeUrl('docs.google.com/document/d/abc')).toBe('https://docs.google.com/document/d/abc');
+    expect(normalizeUrl('docs.google.com/document/d/abc')).toBe(
+      'https://docs.google.com/document/d/abc',
+    );
     expect(normalizeUrl('mailto:teacher@example.com')).toBe('mailto:teacher@example.com');
     expect(normalizeUrl('javascript:alert(1)')).toBeNull();
     expect(normalizeUrl('  ')).toBeNull();
@@ -99,7 +115,9 @@ describe('リンク', () => {
     expect(linksFromText('課題の案内\nhttps://docs.google.com/document/d/abc/edit')).toEqual([
       { label: '課題の案内', url: 'https://docs.google.com/document/d/abc/edit' },
     ]);
-    expect(linksFromText('https://example.com/a')).toEqual([{ label: 'example.com', url: 'https://example.com/a' }]);
+    expect(linksFromText('https://example.com/a')).toEqual([
+      { label: 'example.com', url: 'https://example.com/a' },
+    ]);
     expect(linksFromText('リンクなしの文章')).toEqual([]);
   });
 });

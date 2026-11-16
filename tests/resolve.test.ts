@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { isSpecial, matchCategory, resolveEvent, type Lookup } from '../src/lib/resolve';
 import type { Category, PlannerEvent } from '../src/lib/types';
 
-const cat = (id: string, name: string, keywords: string[], monthMode: Category['monthMode'] = 'auto'): Category => ({
+const cat = (
+  id: string,
+  name: string,
+  keywords: string[],
+  monthMode: Category['monthMode'] = 'auto',
+): Category => ({
   id,
   name,
   color: 'blue',

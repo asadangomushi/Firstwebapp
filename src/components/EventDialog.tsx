@@ -106,10 +106,20 @@ export function EventDialog({ init, onClose }: { init: Partial<EventInput>; onCl
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn-text" disabled={busy} onClick={() => void save(true)}>
+          <button
+            type="button"
+            className="btn btn-text"
+            disabled={busy}
+            onClick={() => void save(true)}
+          >
             詳細を書く
           </button>
-          <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void save(false)}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={busy}
+            onClick={() => void save(false)}
+          >
             {busy ? '保存中…' : '保存'}
           </button>
         </>
@@ -165,7 +175,7 @@ export function EventDialog({ init, onClose }: { init: Partial<EventInput>; onCl
               />
             </>
           ) : (
-            <>
+            <div className="time-pair">
               <input
                 type="time"
                 value={startTime}
@@ -182,7 +192,7 @@ export function EventDialog({ init, onClose }: { init: Partial<EventInput>; onCl
                 onChange={(e) => e.target.value && setEndTime(e.target.value)}
               />
               {overnight && <span className="hint">翌日</span>}
-            </>
+            </div>
           )}
         </div>
 

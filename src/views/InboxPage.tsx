@@ -26,7 +26,8 @@ export function InboxPage() {
       <section className="card">
         <h2>受信トレイ</h2>
         <p className="section-hint">
-          この手帳をホーム画面に追加しておくと、Samsung Notesのノート（PDF）やメールの添付ファイルを「共有」からここへ送れます。届いたファイルは、下のボタンで予定につなげてください。
+          この手帳をホーム画面に追加しておくと、Samsung
+          Notesのノート（PDF）やメールの添付ファイルを「共有」からここへ送れます。届いたファイルは、下のボタンで予定につなげてください。
         </p>
         {links.length > 0 && (
           <ul className="list">
@@ -59,10 +60,18 @@ export function InboxPage() {
                 f={f}
                 actions={
                   <>
-                    <button type="button" className="btn btn-text" onClick={() => setTarget({ file: f, kind: 'note' })}>
+                    <button
+                      type="button"
+                      className="btn btn-text"
+                      onClick={() => setTarget({ file: f, kind: 'note' })}
+                    >
                       ノートとして
                     </button>
-                    <button type="button" className="btn btn-text" onClick={() => setTarget({ file: f, kind: 'material' })}>
+                    <button
+                      type="button"
+                      className="btn btn-text"
+                      onClick={() => setTarget({ file: f, kind: 'material' })}
+                    >
                       資料として
                     </button>
                     <IconBtn label="削除" onClick={() => void removeFile(f.id)}>

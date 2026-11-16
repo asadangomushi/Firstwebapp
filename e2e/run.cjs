@@ -19,7 +19,9 @@ function waitFor(url) {
           res.resume();
           resolve();
         })
-        .on('error', () => (++tries > 100 ? reject(new Error(`${url} が起動しません`)) : setTimeout(ping, 200)));
+        .on('error', () =>
+          ++tries > 100 ? reject(new Error(`${url} が起動しません`)) : setTimeout(ping, 200),
+        );
     };
     ping();
   });

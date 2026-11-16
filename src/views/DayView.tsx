@@ -57,7 +57,10 @@ export function DayView({ date }: { date: string }) {
   const dayEvents = useMemo(() => data.events.filter((e) => onDay(e, date)), [data.events, date]);
   const longEvents = dayEvents.filter(isLong);
   const timed = useMemo(() => dayEvents.filter((e) => !isLong(e)), [dayEvents]);
-  const dayActuals = useMemo(() => data.actuals.filter((a) => onDay(a, date)), [data.actuals, date]);
+  const dayActuals = useMemo(
+    () => data.actuals.filter((a) => onDay(a, date)),
+    [data.actuals, date],
+  );
   const copied = new Set(dayActuals.map((a) => a.eventId).filter(Boolean));
 
   const planBoxes = useMemo(
@@ -82,7 +85,10 @@ export function DayView({ date }: { date: string }) {
   );
 
   const catOf = (a: Actual) => (a.categoryId ? data.catById.get(a.categoryId) : undefined);
-  const planTotals = totals(daySegments(date, timed, (e) => e.cat), data.categories);
+  const planTotals = totals(
+    daySegments(date, timed, (e) => e.cat),
+    data.categories,
+  );
   const actualTotals = totals(daySegments(date, dayActuals, catOf), data.categories);
   const max = niceMax(Math.max(sumMinutes(planTotals), sumMinutes(actualTotals), 60));
 
@@ -106,7 +112,9 @@ export function DayView({ date }: { date: string }) {
   const copyAll = async () => {
     const rest = timed.filter((e) => !copied.has(e.id));
     for (const e of rest) await copyToActual({ ...e, categoryId: e.cat?.id });
-    ui.toast(rest.length ? `${rest.length}件の予定を実績にコピーしました` : 'コピーする予定がありません');
+    ui.toast(
+      rest.length ? `${rest.length}件の予定を実績にコピーしました` : 'コピーする予定がありません',
+    );
   };
 
   const createActual = async (minutes: number) => {
@@ -216,7 +224,10 @@ export function DayView({ date }: { date: string }) {
                   const rect = ev.currentTarget.getBoundingClientRect();
                   const m = snap(pxToMinutes(ev.clientY - rect.top) - 15, 30);
                   const start = Math.max(0, Math.min(23 * 60, m));
-                  ui.openCreate({ start: atMinutes(date, start), end: atMinutes(date, start + 60) });
+                  ui.openCreate({
+                    start: atMinutes(date, start),
+                    end: atMinutes(date, start + 60),
+                  });
                 }}
               >
                 {planBoxes.map((b) => {
@@ -227,7 +238,9 @@ export function DayView({ date }: { date: string }) {
                         type="button"
                         className={`copy-btn ${done ? 'done' : ''}`}
                         aria-label={
-                          done ? `${b.item.title} は実績にコピー済み` : `${b.item.title} を実績にコピー`
+                          done
+                            ? `${b.item.title} は実績にコピー済み`
+                            : `${b.item.title} を実績にコピー`
                         }
                         title={done ? '実績にコピー済み' : '実績にコピー'}
                         onClick={(ev) => {
@@ -286,7 +299,11 @@ function DayLegend({ plan, actual }: { plan: Total[]; actual: Total[] }) {
     <ul className="legend">
       {[...keys.values()].map((t) => (
         <li key={t.key}>
-          <span className="legend-swatch" style={{ background: fill(t.color) }} aria-hidden="true" />
+          <span
+            className="legend-swatch"
+            style={{ background: fill(t.color) }}
+            aria-hidden="true"
+          />
           <span className="legend-name">{t.label}</span>
           <span className="legend-value">
             予 {p.has(t.key) ? fmtDuration(p.get(t.key)!) : '–'}／実{' '}
@@ -452,7 +469,8 @@ function ActualEditor({ a, onClose }: { a: Actual; onClose: () => void }) {
             if (!v) return;
             const start = `${startDay}T${v}`;
             // 開始だけを動かす（終了はそのまま）。追い越したら15分の長さにする。
-            const end = start < a.end ? a.end : atMinutes(startDay, minutesFrom(startDay, start) + 15);
+            const end =
+              start < a.end ? a.end : atMinutes(startDay, minutesFrom(startDay, start) + 15);
             void updateActual(a.id, { start, end });
           }}
         />

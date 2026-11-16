@@ -73,7 +73,9 @@ describe('予定の範囲', () => {
   it('終日・24時間以上は帯として扱う', () => {
     expect(isLong(trip)).toBe(true);
     expect(isLong(overnight)).toBe(false);
-    expect(isLong({ start: '2026-11-16T09:00', end: '2026-11-17T09:00', allDay: false })).toBe(true);
+    expect(isLong({ start: '2026-11-16T09:00', end: '2026-11-17T09:00', allDay: false })).toBe(
+      true,
+    );
   });
 
   it('表示用の文字列', () => {

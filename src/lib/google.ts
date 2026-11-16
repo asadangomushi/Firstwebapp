@@ -490,7 +490,9 @@ async function pushOne(e: PlannerEvent): Promise<void> {
   }
   let googleId = e.googleId;
   if (!googleId) {
-    const made = await api<GEvent>('POST', `/calendars/${enc(cal.id)}/events`, { body: toGoogle(e) });
+    const made = await api<GEvent>('POST', `/calendars/${enc(cal.id)}/events`, {
+      body: toGoogle(e),
+    });
     googleId = made.id;
   } else {
     await api<GEvent>('PATCH', `/calendars/${enc(cal.id)}/events/${enc(googleId)}`, {
@@ -710,7 +712,13 @@ function addDaysIso(day: string): string {
 /** 繰り返し予定の「すべて」を変更する（題名・場所・メモ・時刻のずらし） */
 export async function updateGoogleSeries(
   e: PlannerEvent,
-  patch: { title?: string; location?: string; memo?: string; shiftMin?: number; durationMin?: number },
+  patch: {
+    title?: string;
+    location?: string;
+    memo?: string;
+    shiftMin?: number;
+    durationMin?: number;
+  },
 ): Promise<void> {
   if (!e.seriesId) return;
   if (!validToken()) await requestToken();

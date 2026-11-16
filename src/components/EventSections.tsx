@@ -94,7 +94,8 @@ export function ExamSection({ e, onSave }: { e: Resolved; onSave: Save }) {
 
 function LinkIcon({ url }: { url: string }) {
   if (url.startsWith('mailto:') || url.includes('mail.google.com')) return <Mail size={18} />;
-  if (url.includes('docs.google.com') || url.includes('drive.google.com')) return <FileText size={18} />;
+  if (url.includes('docs.google.com') || url.includes('drive.google.com'))
+    return <FileText size={18} />;
   return <Link2 size={18} />;
 }
 
@@ -134,16 +135,28 @@ export function LinksSection({ e, onSave }: { e: Resolved; onSave: Save }) {
                 aria-label="リンクの名前"
                 onCommit={(label) =>
                   onSave({
-                    links: e.links.map((x) => (x.id === l.id ? { ...x, label: label || linkLabel(x.url) } : x)),
+                    links: e.links.map((x) =>
+                      x.id === l.id ? { ...x, label: label || linkLabel(x.url) } : x,
+                    ),
                   })
                 }
               />
               <span className="list-sub">{l.url}</span>
             </div>
-            <a className="icon-btn" href={l.url} target="_blank" rel="noopener noreferrer" aria-label={`${l.label} を開く`} title="開く">
+            <a
+              className="icon-btn"
+              href={l.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${l.label} を開く`}
+              title="開く"
+            >
               <ExternalLink size={18} />
             </a>
-            <IconBtn label="リンクを外す" onClick={() => onSave({ links: e.links.filter((x) => x.id !== l.id) })}>
+            <IconBtn
+              label="リンクを外す"
+              onClick={() => onSave({ links: e.links.filter((x) => x.id !== l.id) })}
+            >
               <X size={18} />
             </IconBtn>
           </li>
@@ -189,7 +202,12 @@ export function FileRow({ f, actions }: { f: FileRec; actions?: ReactNode }) {
       <span className="list-icon" aria-hidden="true">
         {f.mime.startsWith('image/') ? <ImageIcon size={18} /> : <FileText size={18} />}
       </span>
-      <button type="button" className="list-main list-open" onClick={() => openFile(f)} title="開く">
+      <button
+        type="button"
+        className="list-main list-open"
+        onClick={() => openFile(f)}
+        title="開く"
+      >
         <span className="list-name">{f.name}</span>
         <span className="list-sub">{fmtSize(f.size)}</span>
       </button>
@@ -262,8 +280,16 @@ export function FilesSection({ e, kind }: { e: Resolved; kind: FileKind }) {
 // ---- 持ち物・提出物 ----
 
 const CHECK_TEXT = {
-  belongings: { title: '持ち物', placeholder: '持ち物を追加（例：電卓）', icon: <Backpack size={18} /> },
-  submissions: { title: '提出物', placeholder: '提出物を追加（例：レポート）', icon: <FileUp size={18} /> },
+  belongings: {
+    title: '持ち物',
+    placeholder: '持ち物を追加（例：電卓）',
+    icon: <Backpack size={18} />,
+  },
+  submissions: {
+    title: '提出物',
+    placeholder: '提出物を追加（例：レポート）',
+    icon: <FileUp size={18} />,
+  },
 } as const;
 
 export function CheckSection({

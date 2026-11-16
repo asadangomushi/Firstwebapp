@@ -5,7 +5,15 @@ import { KindIcon } from '../components/EventChip';
 import { ColorPicker, CommitInput, Empty, IconBtn } from '../components/ui';
 import { chipVars, fill } from '../lib/colors';
 import { useData } from '../lib/data';
-import { fmtDayShort, fmtMonthTitle, fmtRelative, fmtTime, lastDay, startKey, today } from '../lib/date';
+import {
+  fmtDayShort,
+  fmtMonthTitle,
+  fmtRelative,
+  fmtTime,
+  lastDay,
+  startKey,
+  today,
+} from '../lib/date';
 import type { Resolved } from '../lib/resolve';
 import { goBack, navigate } from '../lib/router';
 import { deleteProject, saveProject, updateEvent } from '../lib/store';
@@ -67,11 +75,12 @@ export function ProjectsPage() {
           <span className="proj-body">
             <span className="proj-name">{p.name}</span>
             <span className="list-sub">
-              予定 {list.length} 件
-              {steps.length > 0 ? `・ステップ ${done} / ${steps.length}` : ''}
+              予定 {list.length} 件{steps.length > 0 ? `・ステップ ${done} / ${steps.length}` : ''}
             </span>
             <span className="list-sub">
-              {next ? `次：${fmtDayShort(next.start)} ${next.title}（${fmtRelative(next.start)}）` : 'これからの予定はありません'}
+              {next
+                ? `次：${fmtDayShort(next.start)} ${next.title}（${fmtRelative(next.start)}）`
+                : 'これからの予定はありません'}
             </span>
           </span>
         </button>
@@ -267,7 +276,11 @@ function FlowItem({ e, past }: { e: Resolved; past: boolean }) {
           onChange={(ev) => void updateEvent(e.id, { done: ev.target.checked })}
         />
       )}
-      <button type="button" className="flow-main" onClick={() => navigate({ name: 'event', id: e.id })}>
+      <button
+        type="button"
+        className="flow-main"
+        onClick={() => navigate({ name: 'event', id: e.id })}
+      >
         <span className="flow-title">
           {!e.parentId && <KindIcon e={e} size={14} />}
           {e.title}

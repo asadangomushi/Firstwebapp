@@ -3,10 +3,25 @@ import { ListChecks, Network, Plus, Sparkles, Unlink, X } from 'lucide-react';
 import { useMemo, useState, type CSSProperties } from 'react';
 import { chipVars } from '../lib/colors';
 import { useData } from '../lib/data';
-import { addDays, diffDays, fmtDayShort, fmtEventWhen, fmtRelative, startKey, today } from '../lib/date';
+import {
+  addDays,
+  diffDays,
+  fmtDayShort,
+  fmtEventWhen,
+  fmtRelative,
+  startKey,
+  today,
+} from '../lib/date';
 import type { Resolved } from '../lib/resolve';
 import { navigate } from '../lib/router';
-import { addStep, createEvent, deleteEvent, linkEvents, unlinkEvents, updateEvent } from '../lib/store';
+import {
+  addStep,
+  createEvent,
+  deleteEvent,
+  linkEvents,
+  unlinkEvents,
+  updateEvent,
+} from '../lib/store';
 import { useUI } from '../lib/ui-state';
 import { Section } from './EventSections';
 import { CommitInput, Empty, IconBtn, Modal } from './ui';
@@ -260,9 +275,7 @@ export function EventPicker({
         const fa = a.start.slice(0, 10) >= now;
         const fb = b.start.slice(0, 10) >= now;
         if (fa !== fb) return fa ? -1 : 1;
-        return fa
-          ? startKey(a).localeCompare(startKey(b))
-          : startKey(b).localeCompare(startKey(a));
+        return fa ? startKey(a).localeCompare(startKey(b)) : startKey(b).localeCompare(startKey(a));
       })
       .slice(0, 60);
   }, [data.all, exclude, q]);
