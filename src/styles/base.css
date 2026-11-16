@@ -510,8 +510,9 @@ input[type='checkbox'] {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.list-sub:has(+ .list-sub) {
-  margin-bottom: 0;
+/* 名前が入力欄のときは、下の説明も同じ位置から始める */
+.plain-input + .list-sub {
+  padding-left: 6px;
 }
 .list-open {
   padding: 6px;

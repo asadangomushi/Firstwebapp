@@ -16,6 +16,8 @@ export interface Resolved extends PlannerEvent {
   project?: Project;
   calendar?: CalendarInfo;
   color: string;
+  /** 種類が付いていない（淡い色で表示する） */
+  plain: boolean;
   recurring: boolean;
   /** 月表示に出す「特別な予定」か */
   special: boolean;
@@ -80,8 +82,10 @@ export function resolveEvent(e: PlannerEvent, lk: Lookup): Resolved {
     cat,
     project: meta.projectId ? lk.projById.get(meta.projectId) : undefined,
     calendar,
-    // 色は種類で決める（帯グラフの色と同じ意味にするため）。種類なしはグレー。
-    color: cat?.color ?? 'gray',
+    // 色は種類で決める（帯グラフの色と同じ意味）。種類がまだ無い予定は、カレンダーの色を
+    // 淡く使って「未分類」だと分かるようにする（plain）。
+    color: cat?.color ?? calendar?.color ?? 'gray',
+    plain: !cat,
     recurring: !!e.seriesId,
     special: isSpecial(e, cat, meta.monthVisible),
     shown: calendar ? calendar.visible : true,

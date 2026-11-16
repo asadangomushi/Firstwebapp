@@ -56,7 +56,7 @@ export async function seedIfEmpty(): Promise<void> {
       await db.calendars.put({
         id: LOCAL_CALENDAR,
         name: '手帳（この端末）',
-        color: 'blue',
+        color: 'gray',
         visible: true,
         source: 'local',
         writable: true,

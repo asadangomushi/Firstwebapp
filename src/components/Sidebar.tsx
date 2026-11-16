@@ -11,7 +11,9 @@ import type { ReactNode } from 'react';
 import { fill } from '../lib/colors';
 import { useData } from '../lib/data';
 import { today } from '../lib/date';
+import { syncNow } from '../lib/google';
 import { isCalView, navigate, useRoute, type Route } from '../lib/router';
+import { useInboxLinks } from '../lib/share';
 import { setCalendarVisible } from '../lib/store';
 import { useUI } from '../lib/ui-state';
 import { MiniCalendar } from './MiniCalendar';
@@ -21,7 +23,7 @@ export function Sidebar() {
   const ui = useUI();
   const data = useData();
   const date = 'date' in route ? route.date : today();
-  const inbox = data.files.filter((f) => !f.eventId).length;
+  const inbox = data.files.filter((f) => !f.eventId).length + useInboxLinks().length;
 
   const pick = (d: string) => {
     if ('date' in route) navigate({ ...route, date: d });
@@ -69,7 +71,13 @@ export function Sidebar() {
             <input
               type="checkbox"
               checked={c.visible}
-              onChange={(e) => void setCalendarVisible(c.id, e.target.checked)}
+              onChange={(e) => {
+                const on = e.target.checked;
+                // オンにしたGoogleカレンダーは、すぐ取り込み直す
+                void setCalendarVisible(c.id, on).then(() => {
+                  if (on && c.source === 'google') void syncNow();
+                });
+              }}
               style={{ accentColor: fill(c.color) }}
             />
             <span>{c.name}</span>

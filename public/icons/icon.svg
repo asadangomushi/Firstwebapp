@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0b57d0"/>
+  <!-- 手帳の表紙 -->
+  <rect x="150" y="112" width="232" height="288" rx="28" fill="#ffffff"/>
+  <!-- とじ具 -->
+  <g fill="#0b57d0">
+    <rect x="128" y="160" width="56" height="20" rx="10"/>
+    <rect x="128" y="220" width="56" height="20" rx="10"/>
+    <rect x="128" y="280" width="56" height="20" rx="10"/>
+    <rect x="128" y="340" width="56" height="20" rx="10"/>
+  </g>
+  <g fill="#ffffff">
+    <rect x="120" y="164" width="40" height="12" rx="6"/>
+    <rect x="120" y="224" width="40" height="12" rx="6"/>
+    <rect x="120" y="284" width="40" height="12" rx="6"/>
+    <rect x="120" y="344" width="40" height="12" rx="6"/>
+  </g>
+  <!-- 予定の帯 -->
+  <rect x="216" y="168" width="128" height="26" rx="8" fill="#2a78d6"/>
+  <rect x="216" y="214" width="88" height="26" rx="8" fill="#eda100"/>
+  <rect x="216" y="260" width="112" height="26" rx="8" fill="#1baf7a"/>
+  <rect x="216" y="306" width="64" height="26" rx="8" fill="#e87ba4"/>
+</svg>

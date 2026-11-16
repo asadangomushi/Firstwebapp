@@ -25,7 +25,7 @@ import { useData } from '../lib/data';
 import { addDays, addMinutes, diffDays, diffMinutes, fmtEventWhen } from '../lib/date';
 import { matchCategory, type Resolved } from '../lib/resolve';
 import { goBack, navigate } from '../lib/router';
-import { deleteEvent, setEventMeta, updateEvent, type Scope } from '../lib/store';
+import { deleteEvent, saveCategory, setEventMeta, updateEvent, type Scope } from '../lib/store';
 import { KIND_LABEL, type EventKind, type PlannerEvent } from '../lib/types';
 import { useUI } from '../lib/ui-state';
 
@@ -179,6 +179,20 @@ export function EventPage({ id }: { id: string }) {
             ))}
           </select>
         </Row>
+        {e.cat && meta?.categoryId && !matchCategory(e.title, data.categories) && (
+          <p className="row-note">
+            <button
+              type="button"
+              className="link-btn"
+              onClick={() => {
+                void saveCategory({ ...e.cat!, keywords: [...e.cat!.keywords, e.title.trim()] });
+                ui.toast(`これから「${e.title}」を含む予定は、自動で「${e.cat!.name}」になります`);
+              }}
+            >
+              これから「{e.title}」を含む予定は、自動で「{e.cat.name}」にする
+            </button>
+          </p>
+        )}
         <Row icon={<FolderKanban size={18} />} label="プロジェクト">
           <select
             value={meta?.projectId ?? ''}

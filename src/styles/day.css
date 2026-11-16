@@ -732,6 +732,11 @@
   content: '';
 }
 
+/* 実績の編集中は、作成ボタンが編集欄に重ならないよう隠す */
+.app:has(.actual-editor) .fab {
+  display: none;
+}
+
 @media (max-width: 720px) {
   .day-summary {
     padding: 6px 8px 6px 0;

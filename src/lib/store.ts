@@ -186,7 +186,8 @@ export async function updateEvent(
   const fields = changedSyncFields(e, patch);
   const google = !!e.googleId || (await isGoogleCalendar(e.calendarId));
 
-  if (scope === 'all' && e.seriesId && fields.length > 0) {
+  // 終日⇔時間つきの切り替えは回ごとに意味が違うので、その回だけに適用する
+  if (scope === 'all' && e.seriesId && fields.length > 0 && patch.allDay === undefined) {
     await updateSeries(e, patch, google);
     // 繰り返し全体に関係しない項目（リンクなど）はこの回だけに保存する
     const rest = { ...patch };
@@ -471,16 +472,33 @@ export async function attachFile(id: string, eventId: string, kind: FileKind): P
   await db.files.update(id, { eventId, kind });
 }
 
-/** ファイルを新しいタブで開く（PDFや画像はブラウザがそのまま表示する） */
+/** ブラウザの中でそのまま表示しても安全な種類（HTMLやSVGは中のスクリプトが動くので含めない） */
+const INLINE_SAFE = /^(application\/pdf|text\/plain|image\/(png|jpeg|gif|webp|bmp|heic|heif))$/;
+
+/**
+ * ファイルを開く。PDF・画像・テキストは新しいタブで表示し、それ以外は端末に保存する。
+ * メールの添付などには何が入っているか分からないので、アプリと同じ場所で
+ * プログラムとして動いてしまう種類（HTMLなど）は決して表示しない。
+ */
 export function openFile(f: FileRec): void {
-  const url = URL.createObjectURL(f.blob);
-  const w = window.open(url, '_blank', 'noopener');
-  if (!w) {
-    // ポップアップが止められたらダウンロードにする
+  const pdfInline =
+    (navigator as Navigator & { pdfViewerEnabled?: boolean }).pdfViewerEnabled !== false;
+  const inline = INLINE_SAFE.test(f.mime) && (f.mime !== 'application/pdf' || pdfInline);
+  const save = (url: string) => {
     const a = document.createElement('a');
     a.href = url;
     a.download = f.name;
     a.click();
+  };
+  if (inline) {
+    const url = URL.createObjectURL(f.blob);
+    // ポップアップが止められたら保存にする
+    if (!window.open(url, '_blank', 'noopener')) save(url);
+    setTimeout(() => URL.revokeObjectURL(url), 5 * 60_000);
+  } else {
+    // 中身を実行できない種類として渡す
+    const url = URL.createObjectURL(new Blob([f.blob], { type: 'application/octet-stream' }));
+    save(url);
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
-  setTimeout(() => URL.revokeObjectURL(url), 5 * 60_000);
 }

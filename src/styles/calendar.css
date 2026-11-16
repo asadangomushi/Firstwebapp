@@ -71,6 +71,20 @@
   font-weight: 500;
 }
 
+/* 種類がまだ無い予定：カレンダーの色を淡く敷き、左端だけ濃くする */
+.chip-bar.plain,
+.block.plain {
+  --on-chip: var(--text);
+  background: color-mix(in srgb, var(--chip) 18%, var(--bg));
+  color: var(--text);
+}
+.chip-bar.plain {
+  box-shadow: inset 3px 0 0 var(--chip);
+}
+.block.plain {
+  box-shadow: inset 3px 0 0 var(--chip), 0 0 0 1px var(--bg);
+}
+
 /* ---- 月表示 ---- */
 .month {
   display: flex;
@@ -384,6 +398,14 @@
   .mweek-events .chip-dot {
     background: var(--chip);
     color: var(--on-chip);
+  }
+  .mweek-events .chip-dot.plain {
+    background: color-mix(in srgb, var(--chip) 18%, var(--bg));
+    color: var(--text);
+    box-shadow: inset 2px 0 0 var(--chip);
+  }
+  .chip-bar.plain {
+    box-shadow: inset 2px 0 0 var(--chip);
   }
   .mweek-events .chip-mark,
   .mweek-events .chip-time,

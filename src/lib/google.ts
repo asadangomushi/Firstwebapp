@@ -627,6 +627,12 @@ export function initGoogle(): void {
   if (validToken()) void syncNow();
 }
 
+/** アプリに戻ってきたとき、前回の同期から時間がたっていれば取り込み直す */
+export function syncIfStale(maxAgeMs = 10 * 60_000): void {
+  if (!isConfigured() || state.status === 'syncing' || !validToken()) return;
+  if (Date.now() - state.lastSync > maxAgeMs) void syncNow();
+}
+
 // ---- 削除・繰り返し ----
 
 /** Google側の予定を消す。今すぐ送れなければ控えに残して次の同期で送る。 */

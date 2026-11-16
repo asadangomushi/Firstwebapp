@@ -189,7 +189,7 @@ export function EventBlock({ box, children }: { box: Box<Resolved>; children?: R
   const short = box.end - box.start < 45;
   return (
     <div
-      className={`block ${short ? 'short' : ''} ${e.done ? 'done' : ''}`}
+      className={`block ${short ? 'short' : ''} ${e.done ? 'done' : ''} ${e.plain ? 'plain' : ''}`}
       style={{ ...boxStyle(box), ...chipVars(e.color) } as CSSProperties}
     >
       <button

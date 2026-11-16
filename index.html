@@ -10,6 +10,16 @@
     <link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
     <link rel="apple-touch-icon" href="./icons/icon-192.png" />
     <title>手帳</title>
+    <script>
+      // 画面が出る前にライト／ダークを決めておく（一瞬白く光るのを防ぐ）
+      try {
+        var s = JSON.parse(localStorage.getItem('techo.settings') || '{}');
+        var dark =
+          s.theme === 'dark' ||
+          ((!s.theme || s.theme === 'auto') && matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

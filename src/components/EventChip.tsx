@@ -33,6 +33,7 @@ export function EventChip({
     contLeft ? 'cont-l' : '',
     contRight ? 'cont-r' : '',
     e.done ? 'done' : '',
+    e.plain ? 'plain' : '',
   ].join(' ');
   return (
     <button

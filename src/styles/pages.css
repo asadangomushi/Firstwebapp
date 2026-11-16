@@ -131,6 +131,18 @@
   color: var(--muted);
   font-size: 12px;
 }
+.link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.link-btn:hover {
+  text-decoration: underline;
+}
 .when {
   display: flex;
   flex-wrap: wrap;

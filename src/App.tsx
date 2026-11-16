@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react';
-import { ChatPanel } from './components/ChatPanel';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { ConfirmHost, Toast } from './components/Overlays';
 import { EventDialog } from './components/EventDialog';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { DataProvider, useData } from './lib/data';
 import { seedIfEmpty } from './lib/db';
-import { initGoogle } from './lib/google';
+import { initGoogle, syncIfStale } from './lib/google';
 import { isCalView, useRoute } from './lib/router';
+import { importShared } from './lib/share';
 import { UIProvider, useUI } from './lib/ui-state';
 import { DayView } from './views/DayView';
 import { DiaryPage } from './views/DiaryPage';
@@ -22,6 +22,9 @@ import { weekDays } from './lib/date';
 import { useSettings } from './lib/settings';
 import { Plus } from 'lucide-react';
 
+// Claudeとの会話は使うときにだけ読み込む（最初の表示を軽くするため）
+const ChatPanel = lazy(() => import('./components/ChatPanel').then((m) => ({ default: m.ChatPanel })));
+
 export function App() {
   const [booted, setBooted] = useState(false);
 
@@ -29,7 +32,20 @@ export function App() {
     void seedIfEmpty().then(() => {
       setBooted(true);
       initGoogle();
+      // ほかのアプリから「共有」で届いたものがあれば受信トレイへ
+      void importShared();
     });
+  }, []);
+
+  // 別のアプリから戻ってきたとき：共有で届いたものを取り込み、Googleとも合わせ直す
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      void importShared();
+      syncIfStale();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, []);
 
   if (!booted) return null;
@@ -97,7 +113,11 @@ function Shell() {
         <main className="main" id="main">
           {data.ready ? view : null}
         </main>
-        {ui.chatOpen && <ChatPanel />}
+        {ui.chatOpen && (
+          <Suspense fallback={<aside className="chat" aria-busy="true" />}>
+            <ChatPanel />
+          </Suspense>
+        )}
       </div>
       {isCalView(route) && (
         <button
