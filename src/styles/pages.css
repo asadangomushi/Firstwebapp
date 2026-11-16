@@ -169,7 +169,7 @@
   border-radius: 2px;
   background: var(--chip);
 }
-.section > .btn {
+.card > .btn {
   align-self: flex-start;
 }
 

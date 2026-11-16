@@ -69,16 +69,19 @@ export function isSpecial(
 
 export function resolveEvent(e: PlannerEvent, lk: Lookup): Resolved {
   const meta = metaOf(e, lk.series);
+  const calendar = lk.calById.get(e.calendarId);
+  // 個別に選んだ種類が最優先。なければタイトル（とGoogleカレンダーの名前）から推測する。
+  const hint = calendar?.source === 'google' ? `${e.title} ${calendar.name}` : e.title;
   const cat =
     (meta.categoryId ? lk.catById.get(meta.categoryId) : undefined) ??
-    matchCategory(e.title, lk.categories);
-  const calendar = lk.calById.get(e.calendarId);
+    matchCategory(hint, lk.categories);
   return {
     ...e,
     cat,
     project: meta.projectId ? lk.projById.get(meta.projectId) : undefined,
     calendar,
-    color: cat?.color ?? calendar?.color ?? 'blue',
+    // 色は種類で決める（帯グラフの色と同じ意味にするため）。種類なしはグレー。
+    color: cat?.color ?? 'gray',
     recurring: !!e.seriesId,
     special: isSpecial(e, cat, meta.monthVisible),
     shown: calendar ? calendar.visible : true,

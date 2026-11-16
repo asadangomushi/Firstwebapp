@@ -154,11 +154,14 @@ export function CommitInput({
   value,
   onCommit,
   multiline = false,
+  autosaveMs,
   ...rest
 }: {
   value: string;
   onCommit: (v: string) => void;
   multiline?: boolean;
+  /** 指定すると、入力が止まってからこの時間で自動保存する（日記など長い文章用） */
+  autosaveMs?: number;
   className?: string;
   placeholder?: string;
   'aria-label'?: string;
@@ -168,39 +171,57 @@ export function CommitInput({
 }) {
   const [text, setText] = useState(value);
   const dirty = useRef(false);
+  const latest = useRef(value);
+  const saved = useRef(value);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const commitRef = useRef(onCommit);
+  commitRef.current = onCommit;
 
   useEffect(() => {
+    saved.current = value;
     // 外から値が変わったら（同期など）追従する。入力中は上書きしない。
-    if (!dirty.current) setText(value);
+    if (!dirty.current) {
+      latest.current = value;
+      setText(value);
+    }
   }, [value]);
 
   const commit = () => {
+    clearTimeout(timer.current);
     if (!dirty.current) return;
     dirty.current = false;
-    if (text !== value) onCommit(text);
+    if (latest.current !== saved.current) {
+      saved.current = latest.current;
+      commitRef.current(latest.current);
+    }
+  };
+
+  // 画面を離れるときに、書きかけを取りこぼさない
+  useEffect(() => commit, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const change = (v: string) => {
+    dirty.current = true;
+    latest.current = v;
+    setText(v);
+    if (autosaveMs) {
+      clearTimeout(timer.current);
+      timer.current = setTimeout(() => {
+        if (latest.current !== saved.current) {
+          saved.current = latest.current;
+          commitRef.current(latest.current);
+        }
+      }, autosaveMs);
+    }
   };
 
   if (multiline) {
-    return (
-      <textarea
-        {...rest}
-        value={text}
-        onChange={(e) => {
-          dirty.current = true;
-          setText(e.target.value);
-        }}
-        onBlur={commit}
-      />
-    );
+    return <textarea {...rest} value={text} onChange={(e) => change(e.target.value)} onBlur={commit} />;
   }
   return (
     <input
       {...rest}
       value={text}
-      onChange={(e) => {
-        dirty.current = true;
-        setText(e.target.value);
-      }}
+      onChange={(e) => change(e.target.value)}
       onBlur={commit}
       onKeyDown={(e) => {
         if (e.key === 'Enter' && !e.nativeEvent.isComposing) (e.target as HTMLInputElement).blur();

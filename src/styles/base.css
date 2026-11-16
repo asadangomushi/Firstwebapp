@@ -153,6 +153,7 @@ button {
 .seg {
   display: inline-flex;
   flex: none;
+  align-self: flex-start;
   border: 1px solid var(--line-strong);
   border-radius: 20px;
   overflow: hidden;

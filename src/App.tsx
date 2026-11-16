@@ -8,7 +8,12 @@ import { seedIfEmpty } from './lib/db';
 import { initGoogle } from './lib/google';
 import { isCalView, useRoute } from './lib/router';
 import { UIProvider, useUI } from './lib/ui-state';
+import { DayView } from './views/DayView';
+import { DiaryPage } from './views/DiaryPage';
 import { EventPage } from './views/EventPage';
+import { InboxPage } from './views/InboxPage';
+import { ProjectPage, ProjectsPage } from './views/ProjectsPage';
+import { TimeUseView } from './views/TimeUseView';
 import { MonthView } from './views/MonthView';
 import { SettingsPage } from './views/SettingsPage';
 import { WeekView } from './views/WeekView';
@@ -58,7 +63,22 @@ function Shell() {
       view = <WeekView days={weekDays(route.date, settings.weekStartsOn)} />;
       break;
     case 'day':
-      view = <WeekView days={[route.date]} />;
+      view = <DayView date={route.date} />;
+      break;
+    case 'timeuse':
+      view = <TimeUseView date={route.date} />;
+      break;
+    case 'diary':
+      view = <DiaryPage date={route.date} />;
+      break;
+    case 'projects':
+      view = <ProjectsPage />;
+      break;
+    case 'project':
+      view = <ProjectPage id={route.id} />;
+      break;
+    case 'inbox':
+      view = <InboxPage />;
       break;
     case 'event':
       view = <EventPage id={route.id} />;
@@ -66,8 +86,6 @@ function Shell() {
     case 'settings':
       view = <SettingsPage />;
       break;
-    default:
-      view = <MonthView date={'date' in route ? route.date : ''} />;
   }
 
   return (
