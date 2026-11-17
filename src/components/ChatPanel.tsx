@@ -1,11 +1,11 @@
-// Claudeと話すパネル。「金曜の15時に歯医者を追加して」のように頼める。
+// AI（Claude または Gemini）と話すパネル。「金曜の15時に歯医者を追加して」のように頼める。
 import { ArrowUp, RotateCcw, Sparkles, Square, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { resetChat, sendChat, stopChat, useChat } from '../lib/claude';
+import { resetChat, sendChat, stopChat, useChat } from '../lib/assistant';
 import { useData } from '../lib/data';
 import { fmtDay } from '../lib/date';
 import { navigate, useRoute, type Route } from '../lib/router';
-import { useSettings } from '../lib/settings';
+import { assistantInfo, useSettings } from '../lib/settings';
 import { useUI } from '../lib/ui-state';
 import { IconBtn } from './ui';
 
@@ -19,13 +19,14 @@ export function ChatPanel() {
   const ui = useUI();
   const chat = useChat();
   const settings = useSettings();
+  const ai = assistantInfo(settings);
   const data = useData();
   const route = useRoute();
   const [text, setText] = useState('');
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // ほかの画面から「Claudeに頼む」で開いたときは、その文を入力欄に入れておく
+  // ほかの画面から「AIに頼む」で開いたときは、その文を入力欄に入れておく
   useEffect(() => {
     if (ui.chatDraft) {
       setText(ui.chatDraft);
@@ -70,7 +71,7 @@ export function ChatPanel() {
       viewing: viewing(route),
       confirmDelete: async (label) =>
         (await ui.confirm({
-          title: 'Claudeが予定を削除しようとしています',
+          title: `${ai.name}が予定を削除しようとしています`,
           message: `「${label}」を削除してよいですか？`,
           actions: [{ label: '削除する', value: 'yes', danger: true }],
         })) === 'yes',
@@ -78,10 +79,10 @@ export function ChatPanel() {
   };
 
   return (
-    <aside className="chat" aria-label="Claude">
+    <aside className="chat" aria-label={ai.name}>
       <header className="chat-head">
         <Sparkles size={20} />
-        <h2>Claude</h2>
+        <h2>{ai.name}</h2>
         <IconBtn label="新しい会話にする" onClick={resetChat} disabled={chat.items.length === 0}>
           <RotateCcw size={18} />
         </IconBtn>
@@ -94,7 +95,7 @@ export function ChatPanel() {
         {chat.items.length === 0 && (
           <div className="chat-intro">
             <p>予定の追加や変更を、ことばで頼めます。</p>
-            {settings.claudeApiKey ? (
+            {ai.hasKey ? (
               <div className="chat-examples">
                 {EXAMPLES.map((ex) => (
                   <button
@@ -110,7 +111,8 @@ export function ChatPanel() {
             ) : (
               <>
                 <p className="hint">
-                  使うにはAnthropicのAPIキーが必要です（使った分だけ料金がかかります）。
+                  使うには{ai.name}
+                  のAPIキーが必要です。設定の「AIアシスタント」で、使うAIを選んで登録できます。
                 </p>
                 <button
                   type="button"
@@ -172,7 +174,7 @@ export function ChatPanel() {
           rows={2}
           value={text}
           placeholder="例：この日に勉強会を追加して"
-          aria-label="Claudeへのメッセージ"
+          aria-label={`${ai.name}へのメッセージ`}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
             // Enterで送信（日本語の変換確定のEnterでは送らない）。改行はShift+Enter。

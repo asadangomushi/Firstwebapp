@@ -7,7 +7,13 @@ import { useData } from '../lib/data';
 import { today } from '../lib/date';
 import { LOCAL_CALENDAR } from '../lib/db';
 import { disconnectGoogle, initGoogle, syncNow, useSyncState } from '../lib/google';
-import { applyTheme, setSettings, useSettings, type Settings } from '../lib/settings';
+import {
+  applyTheme,
+  setSettings,
+  useSettings,
+  type AssistantId,
+  type Settings,
+} from '../lib/settings';
 import { deleteCategory, reorderCategories, saveCategory } from '../lib/store';
 import type { Category, MonthMode } from '../lib/types';
 import { useUI } from '../lib/ui-state';
@@ -17,7 +23,7 @@ export function SettingsPage() {
     <div className="page settings">
       <CategorySettings />
       <GoogleSettings />
-      <ClaudeSettings />
+      <AssistantSettings />
       <DisplaySettings />
       <DataSettings />
     </div>
@@ -298,7 +304,7 @@ function GoogleSettings() {
   );
 }
 
-// ---- Claude ----
+// ---- AIアシスタント ----
 
 const MODELS: Array<{ id: string; label: string }> = [
   { id: 'claude-opus-5-5', label: 'Claude Opus 5.5（おすすめ）' },
@@ -306,13 +312,38 @@ const MODELS: Array<{ id: string; label: string }> = [
   { id: 'claude-haiku-5-5', label: 'Claude Haiku 5.5（いちばん安い）' },
 ];
 
-function ClaudeSettings() {
+function AssistantSettings() {
   const settings = useSettings();
   return (
     <section className="card">
-      <h2>Claude</h2>
+      <h2>AIアシスタント</h2>
       <p className="section-hint">
-        アプリの中でClaudeに話しかけて、予定を追加・変更できます（例：「金曜の15時に歯医者を追加して」）。使うにはAnthropicのAPIキーが必要で、使った分だけ料金がかかります。キーはこの端末の中だけに保存され、Anthropic以外には送られません。
+        アプリの中でAIに話しかけて、予定を追加・変更できます（例：「金曜の15時に歯医者を追加して」）。使うAIを選び、そのAPIキーを登録してください。キーはこの端末の中だけに保存され、選んだAIの会社以外には送られません。
+      </p>
+      <div className="setting-line">
+        <span>使うAI</span>
+        <Segmented<AssistantId>
+          small
+          label="使うAI"
+          value={settings.aiProvider}
+          onChange={(aiProvider) => setSettings({ aiProvider })}
+          options={[
+            { value: 'claude', label: 'Claude' },
+            { value: 'gemini', label: 'Gemini' },
+          ]}
+        />
+      </div>
+      {settings.aiProvider === 'gemini' ? <GeminiFields /> : <ClaudeFields />}
+    </section>
+  );
+}
+
+function ClaudeFields() {
+  const settings = useSettings();
+  return (
+    <>
+      <p className="section-hint">
+        AnthropicのAPIキーが必要で、使った分だけ料金がかかります（前払いのチャージ式）。送った内容がAIの学習に使われることはありません。
       </p>
       <label className="field">
         <span>
@@ -329,6 +360,7 @@ function ClaudeSettings() {
         <CommitInput
           value={settings.claudeApiKey}
           placeholder="sk-ant-…"
+          aria-label="ClaudeのAPIキー"
           onCommit={(v) => setSettings({ claudeApiKey: v.trim() })}
         />
       </label>
@@ -345,7 +377,105 @@ function ClaudeSettings() {
           ))}
         </select>
       </label>
-    </section>
+    </>
+  );
+}
+
+function GeminiFields() {
+  const settings = useSettings();
+  const [models, setModels] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState('');
+
+  const load = async () => {
+    setBusy(true);
+    setNote('');
+    try {
+      // GoogleのSDKは大きいので、使うときにだけ読み込む
+      const { listModels } = await import('../lib/gemini');
+      const list = await listModels(settings.geminiApiKey);
+      setModels(list);
+      setNote(
+        list.length
+          ? `${list.length}件のモデルが使えます。下の欄から選んでください。`
+          : '使えるモデルが見つかりませんでした。',
+      );
+    } catch (err) {
+      const { describe } = await import('../lib/gemini');
+      setNote(describe(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // 一覧に、いま選んでいるモデルが必ず入るようにする
+  const options = models.includes(settings.geminiModel)
+    ? models
+    : [settings.geminiModel, ...models];
+
+  return (
+    <>
+      <p className="section-hint">
+        Google AI
+        StudioのAPIキーで使えます。無料の枠があり、1分・1日あたりの回数に上限があります。Googleの案内では、無料の枠で送った内容はサービスの改善に使われることがあり、人が読む場合もあります。予定や日記の中身を送ることになるので、最新の条件を
+        <a
+          href="https://ai.google.dev/gemini-api/docs/pricing"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          料金
+        </a>
+        と
+        <a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noopener noreferrer">
+          利用規約
+        </a>
+        のページで確かめてから使ってください。
+      </p>
+      <label className="field">
+        <span>
+          APIキー（
+          <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">
+            Google AI Studio
+          </a>
+          で作成）
+        </span>
+        <CommitInput
+          value={settings.geminiApiKey}
+          placeholder="AIza…"
+          aria-label="GeminiのAPIキー"
+          onCommit={(v) => setSettings({ geminiApiKey: v.trim() })}
+        />
+      </label>
+      <label className="field">
+        <span>モデル</span>
+        <select
+          value={settings.geminiModel}
+          aria-label="Geminiのモデル"
+          onChange={(e) => setSettings({ geminiModel: e.target.value })}
+        >
+          {options.map((m) => (
+            <option key={m} value={m}>
+              {m}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div className="btn-row">
+        <button
+          type="button"
+          className="btn btn-tonal"
+          disabled={busy || !settings.geminiApiKey}
+          onClick={() => void load()}
+        >
+          {busy ? '取得中…' : 'モデルの一覧を取得'}
+        </button>
+        {note && <span className="status-text">{note}</span>}
+      </div>
+      <p className="section-hint">
+        モデルの名前はGoogle側でよく入れ替わります。「見つかりません」と出たら、一覧を取得して選び直してください。無料の枠で使えるのは、主に名前に
+        flash が付く軽いモデルです。
+      </p>
+    </>
   );
 }
 

@@ -22,6 +22,7 @@ import {
   unlinkEvents,
   updateEvent,
 } from '../lib/store';
+import { assistantInfo, useSettings } from '../lib/settings';
 import { useUI } from '../lib/ui-state';
 import { Section } from './EventSections';
 import { CommitInput, Empty, IconBtn, Modal, PickerInput } from './ui';
@@ -38,6 +39,7 @@ function beforeLabel(deadline: string, date: string): string {
 export function PlanSection({ e }: { e: Resolved }) {
   const data = useData();
   const ui = useUI();
+  const settings = useSettings();
   const steps = data.steps.get(e.id) ?? [];
   const deadline = e.start.slice(0, 10);
   const [title, setTitle] = useState('');
@@ -136,7 +138,7 @@ export function PlanSection({ e }: { e: Resolved }) {
         }
       >
         <Sparkles size={18} />
-        Claudeに計画を立ててもらう
+        {assistantInfo(settings).name}に計画を立ててもらう
       </button>
     </Section>
   );

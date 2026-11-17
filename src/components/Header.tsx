@@ -23,7 +23,7 @@ import {
 } from '../lib/date';
 import { syncNow, useSyncState } from '../lib/google';
 import { goBack, isCalView, navigate, useRoute, type CalView, type Route } from '../lib/router';
-import { setSettings, useSettings } from '../lib/settings';
+import { assistantInfo, setSettings, useSettings } from '../lib/settings';
 import { useUI } from '../lib/ui-state';
 import { IconBtn, Segmented } from './ui';
 
@@ -94,7 +94,7 @@ export function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
         </h1>
         <div className="h-tools">
           <IconBtn
-            label="Claudeに頼む"
+            label={`${assistantInfo(settings).name}に頼む`}
             className="chat-btn"
             aria-pressed={ui.chatOpen}
             onClick={() => (ui.chatOpen ? ui.closeChat() : ui.openChat())}

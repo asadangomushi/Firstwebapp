@@ -42,7 +42,7 @@
 - 日記（1日1ページ、気分、その日の予定と実績の振り返り）
 - プロジェクト（プロジェクトごとの予定の流れ）
 - 予定の種類の設定画面（キーワードで自動分類。例：タイトルに「数学」→ 勉強）
-- Claude に話しかけて予定を追加・変更（例：「金曜の15時に歯医者を追加して」）
+- AI（Claude または Gemini）に話しかけて予定を追加・変更（例：「金曜の15時に歯医者を追加して」）
 - スマホのホーム画面に追加でき、オフラインでも開ける
 - ほかのアプリからの「共有」でファイルやリンクを受け取り、予定につなげる（受信トレイ）
 
@@ -76,9 +76,19 @@ GitHub Pages を無料で使うには、リポジトリが公開（Public）で�
 - Google に送るのは、題名・日時・場所・メモだけです。リンクや持ち物などの書き足した情報は端末の中にだけ置きます
 - Google 側で予定が消えても、手帳で情報を書き足してあった予定は消さずに「手帳（この端末）」の予定として残します
 
-### 4. Claude を使う（任意）
+### 4. AI に話しかけて使う（任意）
 
-「設定 → Claude」に [Anthropic Console](https://console.anthropic.com/settings/keys) で作った API キーを入れます。使った分だけ料金がかかります。キーはこの端末の中にだけ保存され、ブラウザから Anthropic の API を直接呼びます。自分だけが使う端末で使ってください。
+「設定 → AIアシスタント」で、使う AI を **Claude** か **Gemini** から選び、その API キーを入れます。キーはこの端末の中にだけ保存され、ブラウザから選んだ AI の API を直接呼びます。自分だけが使う端末で使ってください。
+
+| | Claude | Gemini |
+|---|---|---|
+| API キーを作る場所 | [Anthropic Console](https://console.anthropic.com/settings/keys) | [Google AI Studio](https://aistudio.google.com/apikey) |
+| 料金 | 使った分だけ（前払いのチャージ式） | 無料の枠あり（1分・1日あたりの回数に上限） |
+| 送った内容の扱い | AI の学習に使われない | 無料の枠では、サービスの改善に使われることがある |
+
+Gemini の無料の枠の条件は変わることがあります。使う前に、Google の[料金](https://ai.google.dev/gemini-api/docs/pricing)と[利用規約](https://ai.google.dev/gemini-api/terms)のページで確かめてください。AI に送られるのは、頼んだ文章と、それに答えるために読んだ予定・実績・日記の内容です。
+
+Gemini のモデルの名前は入れ替わりが早いので、設定画面の「モデルの一覧を取得」で、いま使えるものから選べるようにしてあります。
 
 ## データについて（大事）
 
@@ -96,7 +106,7 @@ npm run e2e        # 画面を実際に操作するテスト（Playwright が必
 npm run build      # 本番用にビルド（dist/）
 ```
 
-`npm run e2e` は Google と Claude の API を偽物に差し替えて動かすので、本物には何も送りません。
+`npm run e2e` は Google・Claude・Gemini の API を偽物に差し替えて動かすので、本物には何も送りません。
 
 ### 構成
 
@@ -111,7 +121,9 @@ src/
     layout.ts     重なった予定の配置、月表示の段の割り振り
     stats.ts      時間の使い方の集計
     google.ts     Google カレンダーとの同期
-    claude.ts     Claude との会話と、Claude が使う道具
+    assistant.ts  AI との会話と、AI が使う道具（Claude・Gemini 共通）
+    claude.ts     Claude の呼び出し
+    gemini.ts     Gemini の呼び出し
     share.ts      「共有」で届いたものの取り込み
   components/   画面の部品
   views/        各画面（月・週・一日・予定・時間の使い方・日記・プロジェクト・設定）

@@ -22,7 +22,7 @@ import { weekDays } from './lib/date';
 import { useSettings } from './lib/settings';
 import { Plus } from 'lucide-react';
 
-// Claudeとの会話は使うときにだけ読み込む（最初の表示を軽くするため）
+// AIとの会話は使うときにだけ読み込む（最初の表示を軽くするため）
 const ChatPanel = lazy(() =>
   import('./components/ChatPanel').then((m) => ({ default: m.ChatPanel })),
 );

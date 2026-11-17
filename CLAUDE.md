@@ -19,7 +19,8 @@
 - Google へ送るのは題名・日時・場所・メモだけ。書き足した情報（リンク、持ち物など）は端末内だけ
 - 外部から来る文字列（Google の説明文、共有されたリンク、Claude の出力）は信用しない。リンクは `links.ts` の `normalizeUrl` を通し、ファイルは `store.ts` の `openFile` で開く
 - スマホ幅（390px）で必ず確認する。入力欄は 16px 以上（拡大防止）
-- Claude API を触るときは公式 SDK（`@anthropic-ai/sdk`）を使い、モデル ID やパラメータは必ず最新の資料で確認する
+- アプリ内の AI は Claude と Gemini を設定で選べる。AI が使う道具（予定の追加など）は `src/lib/assistant.ts` に1つだけ定義し、`claude.ts` / `gemini.ts` は呼び出し方だけを受け持つ。道具を足すときは assistant.ts に足せば両方で使える
+- AI の API を触るときは公式 SDK（`@anthropic-ai/sdk`、`@google/genai`）を使い、モデル ID やパラメータは必ず最新の資料か SDK の型定義で確認する。Gemini の返事は受け取った形のまま履歴に戻す（思考の署名を欠かすと次の呼び出しが失敗する）
 
 ## 画面の構成
 

@@ -2,6 +2,17 @@
 import { useSyncExternalStore } from 'react';
 import { LOCAL_CALENDAR } from './db';
 
+export type AssistantId = 'claude' | 'gemini';
+
+/** アプリ内で話しかけられるAIの一覧（名前と、APIキーをしまう設定項目） */
+export const ASSISTANTS: Record<
+  AssistantId,
+  { name: string; keyField: 'claudeApiKey' | 'geminiApiKey' }
+> = {
+  claude: { name: 'Claude', keyField: 'claudeApiKey' },
+  gemini: { name: 'Gemini', keyField: 'geminiApiKey' },
+};
+
 export interface Settings {
   theme: 'auto' | 'light' | 'dark';
   /** 週の始まり 0=日曜 1=月曜 */
@@ -14,8 +25,12 @@ export interface Settings {
   /** 同期する範囲（今日から前後の月数） */
   syncPastMonths: number;
   syncFutureMonths: number;
+  /** アプリ内で話しかけるAI */
+  aiProvider: AssistantId;
   claudeApiKey: string;
   claudeModel: string;
+  geminiApiKey: string;
+  geminiModel: string;
   /** 週の時間の使い方の表示 */
   timeUseMode: 'timeline' | 'total';
   timeUseShowPlan: boolean;
@@ -29,8 +44,12 @@ export const DEFAULT_SETTINGS: Settings = {
   googleClientId: '',
   syncPastMonths: 3,
   syncFutureMonths: 12,
+  aiProvider: 'claude',
   claudeApiKey: '',
   claudeModel: 'claude-opus-5-5',
+  geminiApiKey: '',
+  // Google公式SDKの説明書で例に使われているモデル。設定画面で一覧から選び直せる。
+  geminiModel: 'gemini-3.8-flash',
   timeUseMode: 'timeline',
   timeUseShowPlan: false,
 };
@@ -80,4 +99,10 @@ export function applyTheme(): void {
   const dark =
     t === 'dark' || (t === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+}
+
+/** いま選ばれているAIの名前と、APIキーが入っているか */
+export function assistantInfo(s: Settings): { name: string; hasKey: boolean } {
+  const a = ASSISTANTS[s.aiProvider] ?? ASSISTANTS.claude;
+  return { name: a.name, hasKey: !!s[a.keyField] };
 }
