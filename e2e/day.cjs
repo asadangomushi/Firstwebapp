@@ -199,6 +199,39 @@ const assert = (c, m) => {
     '保存した予定が画面に出る（キーワードで勉強に分類）',
   );
 
+  // 時間の使い方の画面から、実績をCSVで書き出す
+  await page.goto(`http://localhost:5173/#/timeuse/${t}`);
+  await page.getByRole('button', { name: '書き出す' }).click();
+  await page.waitForSelector('.modal');
+  const summaryText = await page.locator('.modal .status-text').textContent();
+  assert(/実績 3 件/.test(summaryText), `書き出す件数が出る (${summaryText})`);
+  const [dl] = await Promise.all([
+    page.waitForEvent('download'),
+    page.locator('.modal').getByRole('button', { name: '書き出す' }).click(),
+  ]);
+  const csv = require('fs').readFileSync(await dl.path(), 'utf8');
+  assert(
+    dl.suggestedFilename().startsWith('techo-actuals_') && dl.suggestedFilename().endsWith('.csv'),
+    `ファイル名 (${dl.suggestedFilename()})`,
+  );
+  assert(
+    csv.startsWith('\uFEFF開始日,') &&
+      csv.includes(',数学（自習）,勉強,数学,') &&
+      csv.split('\r\n').length === 5,
+    'CSVに実績が1件ずつ入る（内容・種類・元の予定）',
+  );
+  await page.getByRole('button', { name: '書き出す' }).click();
+  await page
+    .getByRole('group', { name: '中身' })
+    .getByRole('button', { name: '日ごとの合計' })
+    .click();
+  const [dl2] = await Promise.all([
+    page.waitForEvent('download'),
+    page.locator('.modal').getByRole('button', { name: '書き出す' }).click(),
+  ]);
+  const sum = require('fs').readFileSync(await dl2.path(), 'utf8');
+  assert(sum.includes('日付,勉強（時間）,生活（時間）,合計（時間）'), '日ごとの合計も書き出せる');
+
   console.log(errors.length ? 'ERRORS:\n' + errors.join('\n') : 'no console errors');
   await browser.close();
 })();

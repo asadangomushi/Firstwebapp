@@ -1,5 +1,5 @@
 // 週の画面：一週間分の実際の時間の使い方を、横棒の帯グラフで並べて見る。
-import { Table } from 'lucide-react';
+import { Download, Table } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
   Legend,
@@ -8,6 +8,7 @@ import {
   type BarRow,
   type TimelineRow,
 } from '../components/Charts';
+import { ExportDialog } from '../components/ExportDialog';
 import { Empty, Segmented } from '../components/ui';
 import { useData } from '../lib/data';
 import { WEEKDAYS, dayOfWeek, fmtDuration, fmtHours, isLong, today, weekDays } from '../lib/date';
@@ -29,6 +30,7 @@ export function TimeUseView({ date }: { date: string }) {
   const data = useData();
   const settings = useSettings();
   const [showTable, setShowTable] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const days = useMemo(() => weekDays(date, settings.weekStartsOn), [date, settings.weekStartsOn]);
   const now = today();
 
@@ -144,6 +146,10 @@ export function TimeUseView({ date }: { date: string }) {
             <Table size={15} />
             表で見る
           </button>
+          <button type="button" className="btn btn-chip" onClick={() => setExporting(true)}>
+            <Download size={15} />
+            書き出す
+          </button>
         </div>
 
         {weekSum === 0 && !settings.timeUseShowPlan ? (
@@ -198,6 +204,7 @@ export function TimeUseView({ date }: { date: string }) {
           </div>
         )}
       </section>
+      {exporting && <ExportDialog days={days} onClose={() => setExporting(false)} />}
     </div>
   );
 }
