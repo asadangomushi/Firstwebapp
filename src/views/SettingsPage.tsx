@@ -300,7 +300,83 @@ function GoogleSettings() {
           </select>
         </label>
       </div>
+      <DriveSyncSettings />
     </section>
+  );
+}
+
+function DriveSyncSettings() {
+  const settings = useSettings();
+  const sync = useSyncState();
+  const ui = useUI();
+  const ready = !!settings.googleClientId;
+  const last = sync.lastDrive
+    ? new Date(sync.lastDrive).toLocaleString('ja-JP', { dateStyle: 'medium', timeStyle: 'short' })
+    : '';
+
+  const toggle = async (on: boolean) => {
+    if (on) {
+      const ok = await ui.confirm({
+        title: 'Googleドライブで同期する',
+        message:
+          'この端末の手帳の中身（予定・実績・日記・ファイル）を、Googleドライブのこのアプリ専用の場所に保存し、同じ設定をしたほかの端末と同期します。ログインの画面が出たら、ドライブへのアクセスも許可してください。',
+        actions: [{ label: '同期を始める', value: 'yes', primary: true }],
+      });
+      if (!ok) return;
+    }
+    setSettings({ driveSync: on });
+    if (on) await syncNow(true);
+  };
+
+  return (
+    <div className="subsection">
+      <h3 className="section-title">デバイス間の同期（Googleドライブ）</h3>
+      <p className="section-hint">
+        スマホとPCなど、複数の端末で同じ手帳を使えます。手帳の中身は、Googleドライブの「このアプリ専用の見えない場所」に保存されます（ドライブの画面には出ず、ほかのアプリからは見えません）。Googleアカウントの無料の容量を使います。
+      </p>
+      <details className="guide">
+        <summary>はじめに必要な準備（最初の1回だけ）</summary>
+        <ol>
+          <li>
+            <a
+              href="https://console.cloud.google.com/apis/library/drive.googleapis.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Google Cloud の Google Drive API のページ
+            </a>
+            を開き、カレンダー連携で作ったプロジェクトが選ばれていることを確かめて「有効にする」を押します。
+          </li>
+          <li>
+            下の「ドライブで同期する」をオンにし、ログインの画面でドライブへのアクセスも許可します。
+          </li>
+          <li>
+            ほかの端末でも、同じクライアントIDを設定して、同じGoogleアカウントでオンにします。
+          </li>
+        </ol>
+      </details>
+      <label className="check-line">
+        <input
+          type="checkbox"
+          checked={settings.driveSync}
+          disabled={!ready || sync.status === 'syncing'}
+          onChange={(e) => void toggle(e.target.checked)}
+        />
+        ドライブで同期する
+      </label>
+      {!ready && <p className="section-hint">先に上のクライアントIDを設定してください。</p>}
+      {settings.driveSync && (
+        <p className="status-text">{last ? `前回の同期：${last}` : 'まだ同期していません'}</p>
+      )}
+      <ul className="note-list">
+        <li>
+          データを変えると、数秒後に自動で同期します。ほかの端末の変更は、アプリを開いたときに受け取ります。
+        </li>
+        <li>2台で同じものを同時に直したときは、あとから直したほうが残ります。</li>
+        <li>5MBより大きいファイルは同期せず、その端末にだけ残します。</li>
+        <li>APIキーなどの設定は同期しません。端末ごとに設定してください。</li>
+      </ul>
+    </div>
   );
 }
 

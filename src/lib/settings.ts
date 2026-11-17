@@ -22,6 +22,8 @@ export interface Settings {
   /** 新しい予定を入れるカレンダー */
   defaultCalendarId: string;
   googleClientId: string;
+  /** Googleドライブを使って、端末間で手帳の中身を同期するか */
+  driveSync: boolean;
   /** 同期する範囲（今日から前後の月数） */
   syncPastMonths: number;
   syncFutureMonths: number;
@@ -42,6 +44,7 @@ export const DEFAULT_SETTINGS: Settings = {
   monthSpecialOnly: true,
   defaultCalendarId: LOCAL_CALENDAR,
   googleClientId: '',
+  driveSync: false,
   syncPastMonths: 3,
   syncFutureMonths: 12,
   aiProvider: 'claude',

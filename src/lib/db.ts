@@ -5,6 +5,7 @@ import type {
   Actual,
   CalendarInfo,
   Category,
+  Deletion,
   DiaryEntry,
   FileRec,
   PlannerEvent,
@@ -25,6 +26,7 @@ class TechoDB extends Dexie {
   diary!: Table<DiaryEntry, string>;
   files!: Table<FileRec, string>;
   tombstones!: Table<Tombstone, string>;
+  deleted!: Table<Deletion, string>;
 
   constructor() {
     super('techo');
@@ -39,6 +41,8 @@ class TechoDB extends Dexie {
       files: 'id, eventId',
       tombstones: 'googleId',
     });
+    // 端末間の同期のため、消したものの記録を足した
+    this.version(2).stores({ deleted: 'key, at' });
   }
 }
 
@@ -74,12 +78,16 @@ export async function seedIfEmpty(): Promise<void> {
       ];
       await db.categories.bulkPut(
         seed.map(([name, color, keywords, monthMode], order) => ({
-          id: newId(),
+          // どの端末でも同じIDにしておくと、同期したときに二重にならない
+          id: `seed-${order}`,
           name,
           color,
           keywords,
           monthMode,
           order,
+          // 最初からある種類は「まだ誰も変えていない」扱いにする
+          // （ほかの端末で手を加えた種類のほうが、同期で優先されるように）
+          updatedAt: 0,
         })),
       );
     }

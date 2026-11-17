@@ -16,7 +16,9 @@
 - データの書き換えは必ず `src/lib/store.ts` の関数を通す（Google への反映もそこで行う）
 - 色は名前（`blue` など）で保存し、実際の色は `tokens.css` の CSS 変数。色は「予定の種類」を表し、帯グラフと同じ意味にそろえる。種類のない予定は淡い色（`plain`）
 - 繰り返しの予定は各回を1行ずつ持つ（`seriesId` でまとまる）。種類・プロジェクト・月表示の設定は `series` 表でまとまり全体に効かせる
-- Google へ送るのは題名・日時・場所・メモだけ。書き足した情報（リンク、持ち物など）は端末内だけ
+- Google カレンダーへ送るのは題名・日時・場所・メモだけ。書き足した情報（リンク、持ち物など）は、端末内と、同期をオンにしたときの Google ドライブ（appDataFolder）にだけ置く
+- 端末間の同期（`drive.ts` / `syncmerge.ts`）は「変更時刻（updatedAt）が新しいほうを残す」「消したら `deleted` 表に記録して伝える」で成り立っている。時刻の記録と削除の記録は `sync-hooks.ts` がデータベースの手前で自動で行うので、ふつうの書き込みでは何もしなくてよい。ただし、同期で受け取った内容を書き戻すなど記録してはいけない書き込みは `markTransaction('quiet')`、Google カレンダーからの取り込みのように時刻を動かしてはいけない書き込みは `markTransaction('keepTime')` を、その db.transaction の中で呼ぶ
+- Google カレンダーから取り込む予定の ID は `googleEventId()` で決める（どの端末でも同じ ID にして、同期で二重にならないようにするため）。新しい表を足したら、同期の対象にするかを決め、`syncmerge.ts` と `sync-hooks.ts` の一覧にも足す
 - 外部から来る文字列（Google の説明文、共有されたリンク、Claude の出力）は信用しない。リンクは `links.ts` の `normalizeUrl` を通し、ファイルは `store.ts` の `openFile` で開く
 - スマホ幅（390px）で必ず確認する。入力欄は 16px 以上（拡大防止）
 - アプリ内の AI は Claude と Gemini を設定で選べる。AI が使う道具（予定の追加など）は `src/lib/assistant.ts` に1つだけ定義し、`claude.ts` / `gemini.ts` は呼び出し方だけを受け持つ。道具を足すときは assistant.ts に足せば両方で使える

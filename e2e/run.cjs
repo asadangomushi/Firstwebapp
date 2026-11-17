@@ -44,7 +44,8 @@ function run(file) {
   try {
     start(['--port', '5173', '--strictPort']);
     await waitFor('http://localhost:5173/');
-    for (const f of ['day.cjs', 'chat.cjs', 'gemini.cjs', 'google.cjs']) ok = run(f) && ok;
+    for (const f of ['day.cjs', 'chat.cjs', 'gemini.cjs', 'google.cjs', 'drive.cjs'])
+      ok = run(f) && ok;
 
     console.log('\n=== 本番ビルド ===');
     const build = spawnSync('npx', ['vite', 'build'], { cwd: root, stdio: 'inherit' });

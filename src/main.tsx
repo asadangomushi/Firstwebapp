@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { applyTheme } from './lib/settings';
 import { registerServiceWorker } from './lib/share';
+import { installSyncHooks } from './lib/sync-hooks';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/shell.css';
@@ -19,6 +20,8 @@ if (import.meta.env.DEV) {
 }
 
 registerServiceWorker();
+// データの変更を見張る（端末間の同期のため）。データベースに書き込む前に付けておく
+installSyncHooks();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

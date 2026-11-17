@@ -7,10 +7,21 @@ import { addDays, addMonths, endKey, parse, startKey, toLocal, today } from './d
 import { LOCAL_CALENDAR, db, newId } from './db';
 import { hasDetails } from './resolve';
 import { getSettings } from './settings';
+import { driveSync, lastDriveSync } from './drive';
+import { markTransaction, onLocalChange } from './sync-hooks';
 import type { CalendarInfo, PlannerEvent, RepeatRule, SyncField } from './types';
 
-const SCOPES =
-  'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.calendarlist.readonly';
+const CALENDAR_SCOPES = [
+  'https://www.googleapis.com/auth/calendar.events',
+  'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
+];
+/** 端末間の同期で、Googleドライブのこのアプリ専用の場所だけを使う許可 */
+export const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
+
+/** いま必要な許可（ドライブで同期するときだけ、ドライブの許可も求める） */
+function scopes(): string[] {
+  return getSettings().driveSync ? [...CALENDAR_SCOPES, DRIVE_SCOPE] : CALENDAR_SCOPES;
+}
 const API = 'https://www.googleapis.com/calendar/v3';
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
 const TOKEN_KEY = 'techo.gtoken';
@@ -59,9 +70,11 @@ export interface SyncState {
   status: 'off' | 'needsAuth' | 'idle' | 'syncing' | 'error';
   message: string;
   lastSync: number;
+  /** ドライブと最後に同期した時刻 */
+  lastDrive: number;
 }
 
-let state: SyncState = { status: 'off', message: '', lastSync: 0 };
+let state: SyncState = { status: 'off', message: '', lastSync: 0, lastDrive: 0 };
 const listeners = new Set<() => void>();
 
 function setState(patch: Partial<SyncState>): void {
@@ -85,11 +98,14 @@ interface Token {
   value: string;
   /** 期限（ミリ秒） */
   exp: number;
+  /** 利用者が許可した範囲（スペース区切り） */
+  scope?: string;
 }
 
 interface TokenResponse {
   access_token?: string;
   expires_in?: number | string;
+  scope?: string;
   error?: string;
   error_description?: string;
 }
@@ -146,6 +162,20 @@ function validToken(): string | null {
   return t && t.exp - 60_000 > Date.now() ? t.value : null;
 }
 
+/** いまのログインで、その許可をもらっているか（前の版で受け取った鍵は範囲が分からないので、カレンダーだけとみなす） */
+export function hasScope(scope: string): boolean {
+  const t = loadToken();
+  if (!t) return false;
+  if (!t.scope) return CALENDAR_SCOPES.includes(scope);
+  return t.scope.split(' ').includes(scope);
+}
+
+/** 必要な許可がそろった、有効なログインがあるか */
+function readyToken(): string | null {
+  const tk = validToken();
+  return tk && scopes().every(hasScope) ? tk : null;
+}
+
 export function isConfigured(): boolean {
   return getSettings().googleClientId.trim() !== '';
 }
@@ -177,14 +207,14 @@ async function requestToken(): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     const client = oauth.initTokenClient({
       client_id: clientId,
-      scope: SCOPES,
+      scope: scopes().join(' '),
       callback: (r) => {
         if (r.error || !r.access_token) {
           reject(new Error(r.error_description || r.error || 'ログインできませんでした'));
           return;
         }
         const sec = Number(r.expires_in) || 3600;
-        saveToken({ value: r.access_token, exp: Date.now() + sec * 1000 });
+        saveToken({ value: r.access_token, exp: Date.now() + sec * 1000, scope: r.scope });
         resolve(r.access_token);
       },
       error_callback: (e) => {
@@ -212,31 +242,36 @@ export function disconnectGoogle(): void {
 
 // ---- API呼び出し ----
 
-class AuthError extends Error {}
+export class AuthError extends Error {}
+
+/** ログイン済みの鍵を付けて、GoogleのAPIを呼ぶ（ドライブの同期でも使う） */
+export async function authFetch(url: string | URL, init: RequestInit = {}): Promise<Response> {
+  const tk = validToken();
+  if (!tk) throw new AuthError('Googleへのログインが必要です');
+  const headers = new Headers(init.headers);
+  headers.set('Authorization', `Bearer ${tk}`);
+  const res = await fetch(url, { ...init, headers });
+  if (res.status === 401) {
+    saveToken(null);
+    throw new AuthError('Googleへのログインが切れました');
+  }
+  return res;
+}
 
 async function api<T>(
   method: string,
   path: string,
   opts: { query?: Record<string, string | number | boolean | undefined>; body?: unknown } = {},
 ): Promise<T> {
-  const tk = validToken();
-  if (!tk) throw new AuthError('Googleへのログインが必要です');
   const url = new URL(API + path);
   for (const [k, v] of Object.entries(opts.query ?? {})) {
     if (v !== undefined) url.searchParams.set(k, String(v));
   }
-  const res = await fetch(url, {
+  const res = await authFetch(url, {
     method,
-    headers: {
-      Authorization: `Bearer ${tk}`,
-      ...(opts.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-    },
+    headers: opts.body !== undefined ? { 'Content-Type': 'application/json' } : {},
     body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
   });
-  if (res.status === 401) {
-    saveToken(null);
-    throw new AuthError('Googleへのログインが切れました');
-  }
   if (res.status === 204) return undefined as T;
   if (!res.ok) {
     // すでに消えている予定を消そうとした場合は成功扱い
@@ -336,10 +371,17 @@ export function toRRule(rule: RepeatRule, allDay: boolean): string {
   return `RRULE:FREQ=${freq};UNTIL=${utc}`;
 }
 
+/**
+ * Googleの予定から作る手帳の予定のID。どの端末で取り込んでも同じIDになるようにして、
+ * 端末間の同期で二重にならないようにする。
+ */
+export function googleEventId(calendarId: string, googleId: string): string {
+  return `g.${calendarId}.${googleId}`;
+}
+
 function blank(calendarId: string, core: Core, g: GEvent): PlannerEvent {
-  const now = Date.now();
   return {
-    id: newId(),
+    id: googleEventId(calendarId, g.id),
     ...core,
     calendarId,
     kind: 'normal',
@@ -352,8 +394,10 @@ function blank(calendarId: string, core: Core, g: GEvent): PlannerEvent {
     submissions: [],
     relatedIds: [],
     googleId: g.id,
-    createdAt: now,
-    updatedAt: now,
+    createdAt: Date.now(),
+    // 取り込んだだけの予定は「まだ誰も手を加えていない」扱いにする
+    // （ほかの端末で書き足した情報のほうが、同期で優先されるように）
+    updatedAt: 0,
   };
 }
 
@@ -386,6 +430,7 @@ async function pullCalendars(): Promise<CalendarInfo[]> {
   const remoteIds = new Set(next.map((c) => c.id));
   const gone = local.filter((c) => c.source === 'google' && !remoteIds.has(c.id));
   await db.transaction('rw', db.calendars, db.events, db.files, async () => {
+    markTransaction('keepTime');
     await db.calendars.bulkPut(next);
     for (const c of gone) {
       await detachOrDelete(await db.events.where('calendarId').equals(c.id).toArray());
@@ -405,7 +450,6 @@ async function detachOrDelete(events: PlannerEvent[]): Promise<void> {
         googleId: undefined,
         sync: undefined,
         syncFields: undefined,
-        updatedAt: Date.now(),
       });
     } else {
       del.push(e.id);
@@ -434,6 +478,7 @@ export async function mergeEvents(
   to?: string,
 ): Promise<void> {
   await db.transaction('rw', db.events, db.files, async () => {
+    markTransaction('keepTime');
     const local = await db.events.where('calendarId').equals(calendarId).toArray();
     const byGoogle = new Map<string, PlannerEvent>();
     for (const e of local) if (e.googleId) byGoogle.set(e.googleId, e);
@@ -461,7 +506,8 @@ export async function mergeEvents(
         cur.memo !== core.memo ||
         cur.seriesId !== g.recurringEventId;
       if (changed) {
-        puts.push({ ...cur, ...core, seriesId: g.recurringEventId, updatedAt: Date.now() });
+        // Googleの内容は各端末がそれぞれ取り込むので、変更時刻は動かさない
+        puts.push({ ...cur, ...core, seriesId: g.recurringEventId });
       }
     }
     if (puts.length) await db.events.bulkPut(puts);
@@ -572,15 +618,19 @@ export function schedulePush(): void {
 
 /**
  * 同期する。interactive=true はボタンを押したとき用で、必要ならログイン画面を出す。
+ * Googleカレンダーとの同期のあと、設定していればドライブとも同期する。
  */
 export async function syncNow(interactive = false): Promise<void> {
   if (!isConfigured()) {
     setState({ status: 'off', message: '' });
     return;
   }
-  if (!validToken()) {
+  if (!readyToken()) {
     if (!interactive) {
-      setState({ status: 'needsAuth', message: '' });
+      setState({
+        status: 'needsAuth',
+        message: validToken() ? 'ドライブで同期するには、もう一度ログインしてください' : '',
+      });
       return;
     }
     try {
@@ -595,6 +645,7 @@ export async function syncNow(interactive = false): Promise<void> {
   }
   await exclusive(async () => {
     setState({ status: 'syncing', message: '' });
+    const errors: unknown[] = [];
     try {
       await pushPending();
       const cals = await pullCalendars();
@@ -605,15 +656,54 @@ export async function syncNow(interactive = false): Promise<void> {
       } catch {
         // 無視
       }
-      setState({ status: 'idle', message: '', lastSync: now });
+      setState({ lastSync: now });
     } catch (err) {
-      fail(err);
+      errors.push(err);
     }
+    // カレンダーでうまくいかないことがあっても、ドライブとの同期は試す
+    if (getSettings().driveSync) {
+      try {
+        await driveSync();
+        setState({ lastDrive: lastDriveSync() });
+      } catch (err) {
+        errors.push(err);
+      }
+    }
+    if (errors.length) fail(errors.find((e) => e instanceof AuthError) ?? errors[0]);
+    else setState({ status: 'idle', message: '' });
   });
 }
 
+let changeTimer: ReturnType<typeof setTimeout> | undefined;
+
+/** この端末でデータを変えたあと、少し待ってからドライブと同期する（続けて変えたときはまとめる） */
+function scheduleDriveSync(): void {
+  if (!isConfigured() || !getSettings().driveSync) return;
+  clearTimeout(changeTimer);
+  changeTimer = setTimeout(() => {
+    if (!readyToken()) {
+      setState({ status: 'needsAuth', message: 'まだドライブに送れていない変更があります' });
+      return;
+    }
+    void exclusive(async () => {
+      try {
+        await driveSync();
+        setState({ status: 'idle', message: '', lastDrive: lastDriveSync() });
+      } catch (err) {
+        fail(err);
+      }
+    });
+  }, 4000);
+}
+
+let watching = false;
+
 /** 起動時：設定済みで、ログインがまだ有効なら自動で同期する */
 export function initGoogle(): void {
+  if (!watching) {
+    watching = true;
+    onLocalChange(scheduleDriveSync);
+  }
   if (!isConfigured()) {
     setState({ status: 'off' });
     return;
@@ -624,15 +714,22 @@ export function initGoogle(): void {
   } catch {
     // 無視
   }
-  setState({ status: validToken() ? 'idle' : 'needsAuth', lastSync: last });
+  setState({
+    status: readyToken() ? 'idle' : 'needsAuth',
+    lastSync: last,
+    lastDrive: lastDriveSync(),
+  });
   void prepareGoogle().catch(() => undefined);
-  if (validToken()) void syncNow();
+  if (readyToken()) void syncNow();
 }
 
 /** アプリに戻ってきたとき、前回の同期から時間がたっていれば取り込み直す */
 export function syncIfStale(maxAgeMs = 10 * 60_000): void {
-  if (!isConfigured() || state.status === 'syncing' || !validToken()) return;
-  if (Date.now() - state.lastSync > maxAgeMs) void syncNow();
+  if (!isConfigured() || state.status === 'syncing' || !readyToken()) return;
+  // ドライブで同期しているときは、ほかの端末の変更を早めに受け取れるよう、間隔を短くする
+  const limit = getSettings().driveSync ? 60_000 : maxAgeMs;
+  if (Date.now() - Math.min(state.lastSync, state.lastDrive || state.lastSync) > limit)
+    void syncNow();
 }
 
 // ---- 削除・繰り返し ----
@@ -665,6 +762,7 @@ async function pullSeries(calendarId: string, seriesId: string): Promise<void> {
     { maxResults: 2500, timeMin: w.timeMin, timeMax: addDaysIso(w.to) },
   );
   await db.transaction('rw', db.events, db.files, async () => {
+    markTransaction('keepTime');
     const local = await db.events.where('seriesId').equals(seriesId).toArray();
     const byGoogle = new Map<string, PlannerEvent>();
     const byDay = new Map<string, PlannerEvent>();
@@ -674,7 +772,6 @@ async function pullSeries(calendarId: string, seriesId: string): Promise<void> {
     }
     const used = new Set<string>();
     const puts: PlannerEvent[] = [];
-    const now = Date.now();
     for (const g of items) {
       if (g.status === 'cancelled') continue;
       const core = fromGoogle(g);
@@ -691,7 +788,6 @@ async function pullSeries(calendarId: string, seriesId: string): Promise<void> {
           seriesId,
           sync: undefined,
           syncFields: undefined,
-          updatedAt: now,
         });
       } else {
         puts.push(blank(calendarId, core, { ...g, recurringEventId: seriesId }));

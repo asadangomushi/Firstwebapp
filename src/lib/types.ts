@@ -80,6 +80,8 @@ export interface Category {
   keywords: string[];
   monthMode: MonthMode;
   order: number;
+  /** 最後に変更した時刻（端末間の同期で、新しいほうを残すのに使う） */
+  updatedAt?: number;
 }
 
 export interface Project {
@@ -89,6 +91,8 @@ export interface Project {
   note: string;
   archived: boolean;
   order: number;
+  /** 最後に変更した時刻（端末間の同期で、新しいほうを残すのに使う） */
+  updatedAt?: number;
 }
 
 export interface CalendarInfo {
@@ -108,6 +112,8 @@ export interface SeriesMeta {
   categoryId?: ID;
   projectId?: ID;
   monthVisible?: boolean;
+  /** 最後に変更した時刻（端末間の同期で、新しいほうを残すのに使う） */
+  updatedAt?: number;
 }
 
 /** 実際の時間の使い方（実績） */
@@ -120,6 +126,8 @@ export interface Actual {
   /** 予定からコピーした場合の元の予定 */
   eventId?: ID;
   memo: string;
+  /** 最後に変更した時刻（端末間の同期で、新しいほうを残すのに使う） */
+  updatedAt?: number;
 }
 
 export interface DiaryEntry {
@@ -142,6 +150,10 @@ export interface FileRec {
   size: number;
   blob: Blob;
   createdAt: number;
+  /** 最後に変更した時刻（端末間の同期で、新しいほうを残すのに使う） */
+  updatedAt?: number;
+  /** Googleドライブに置いた控えのID（端末間の同期用） */
+  driveId?: string;
 }
 
 /** Googleから消す予定の控え（オフラインで削除したとき用） */
@@ -163,3 +175,24 @@ export const KIND_LABEL: Record<EventKind, string> = {
   exam: 'テスト',
   task: '課題・締切',
 };
+
+/** 端末間の同期で扱う表 */
+export type SyncTable =
+  'events' | 'categories' | 'projects' | 'series' | 'actuals' | 'diary' | 'files';
+
+/**
+ * 消したものの記録。ほかの端末に「これは消した」と伝えるために残す
+ * （記録がないと、ほかの端末に残っている同じものが同期で戻ってきてしまう）。
+ */
+export interface Deletion {
+  /** `表の名前:ID` */
+  key: string;
+  table: SyncTable;
+  id: string;
+  /** 消した時刻 */
+  at: number;
+  /** 二重になったものを1つにまとめて消したときの、残したほうのID（つながりを付け替えるため） */
+  into?: string;
+  /** ファイルを消したとき、ドライブに置いた控えのID（ドライブからも消すため） */
+  driveId?: string;
+}

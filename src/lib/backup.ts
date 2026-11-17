@@ -1,6 +1,7 @@
 // バックアップ：端末の中のデータを1つのファイルに書き出す／読み込む。
 // データはこのブラウザにしかないので、機種変更や万一のために使う。
 import { db } from './db';
+import { markTransaction } from './sync-hooks';
 import type { FileRec } from './types';
 
 interface StoredFile extends Omit<FileRec, 'blob'> {
@@ -83,8 +84,11 @@ export async function importBackup(file: Blob): Promise<void> {
     db.diary,
     db.files,
     db.tombstones,
+    db.deleted,
   ];
   await db.transaction('rw', tables, async () => {
+    // 復元は「消した」操作ではないので、ほかの端末に削除として伝えない
+    markTransaction('quiet');
     for (const t of tables) await t.clear();
     // 形はバックアップを作ったときのものをそのまま戻す
     await db.events.bulkPut(parsed.events as never[]);
