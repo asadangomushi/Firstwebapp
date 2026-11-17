@@ -26,7 +26,7 @@ export function describe(err: unknown): string {
     return 'このAPIキーでは、選んだモデルを使う権限がありません。設定でモデルを変えてみてください。';
   }
   if (err instanceof Anthropic.RateLimitError) {
-    return 'いま混み合っています。少し待ってからもう一度送ってください。';
+    return `Claudeの使える回数の上限に達しました（${err.status}）。少し待ってからもう一度送ってください。`;
   }
   if (err instanceof Anthropic.APIConnectionError) {
     return 'Claudeにつながりませんでした。ネットワークを確認してください。';

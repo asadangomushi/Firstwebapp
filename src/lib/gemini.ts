@@ -22,6 +22,33 @@ resetHooks.add(() => {
   history = [];
 });
 
+/**
+ * Gemini側の一時的なエラー（混雑など）のときは、少し待って自動でやり直す。
+ * 回数の上限（429）はやり直しても回復しないことが多いので、やり直さずにすぐ伝える。
+ */
+const RETRY = {
+  attempts: 3,
+  initialDelay: 1.5,
+  maxDelay: 8,
+  httpStatusCodes: [500, 502, 503, 504],
+};
+
+function client(apiKey: string): GoogleGenAI {
+  return new GoogleGenAI({ apiKey, httpOptions: { retryOptions: RETRY } });
+}
+
+/** Googleが返したエラーの説明文を取り出す（調べやすいよう、そのまま利用者にも見せる） */
+function detail(err: ApiError): string {
+  try {
+    const body = JSON.parse(err.message) as { error?: { message?: string; status?: string } };
+    const msg = body.error?.message ?? '';
+    const status = body.error?.status ?? '';
+    return [status, msg].filter(Boolean).join('：') || err.message;
+  } catch {
+    return err.message;
+  }
+}
+
 /** 道具を使って返事を出すまでの、やり取りの回数の上限（止まらなくなるのを防ぐ） */
 const MAX_TURNS = 16;
 
@@ -93,9 +120,13 @@ export function describe(err: unknown): string {
       return '使える回数の上限に達しました。少し待ってからもう一度送ってください（無料の枠には1分・1日あたりの上限があります）。';
     }
     if (err.status >= 500) {
-      return 'いま混み合っています。少し待ってからもう一度送ってください。';
+      return [
+        `Gemini側で一時的なエラーが起きました（${err.status}）。自動で3回やり直しましたが、うまくいきませんでした。`,
+        '少し待ってからもう一度送るか、設定の「AIアシスタント」で別のモデル（名前に flash-lite が付くものなど）を選んでみてください。',
+        `詳しい内容：${detail(err)}`,
+      ].join('\n');
     }
-    return `Geminiからエラーが返りました（${err.status}）：${err.message}`;
+    return `Geminiからエラーが返りました（${err.status}）：${detail(err)}`;
   }
   if (err instanceof TypeError) {
     return 'Geminiにつながりませんでした。ネットワークを確認してください。';
@@ -106,7 +137,7 @@ export function describe(err: unknown): string {
 export async function run(r: ProviderRun): Promise<void> {
   const settings = getSettings();
   // 個人の端末で自分のキーを使う前提なので、ブラウザから直接呼ぶ
-  const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey });
+  const ai = client(settings.geminiApiKey);
 
   const contents: Content[] = [
     ...history,
@@ -185,7 +216,7 @@ export async function run(r: ProviderRun): Promise<void> {
 
 /** このAPIキーで使える、文章用のGeminiモデルの一覧（設定画面の選択肢に使う） */
 export async function listModels(apiKey: string): Promise<string[]> {
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = client(apiKey);
   const names: string[] = [];
   const pager = await ai.models.list({ config: { pageSize: 200 } });
   for await (const m of pager) {

@@ -223,6 +223,36 @@ const reply = (parts, finishReason = 'STOP') => ({
   assert(errText.includes('上限'), `回数の上限を分かる言葉で伝える (${errText})`);
   await page.screenshot({ path: 'e2e/shots/desk-gemini-chat.png' });
 
+  // 4b) 混雑（503）は自動でやり直す
+  const overloaded = {
+    status: 503,
+    body: {
+      error: {
+        code: 503,
+        message: 'The model is overloaded. Please try again later.',
+        status: 'UNAVAILABLE',
+      },
+    },
+  };
+  script = [overloaded, reply([{ text: 'やり直して答えました。' }])];
+  await page.locator('.chat-form textarea').fill('こんにちは');
+  await page.locator('.chat-form textarea').press('Enter');
+  await said('やり直して答えました');
+  assert(true, '混雑のエラーのあと、自動でやり直して答えが出る');
+
+  // 4c) 混雑が続いたら、詳しい内容と次の手を伝える
+  script = [overloaded, overloaded, overloaded];
+  await page.locator('.chat-form textarea').fill('こんにちは');
+  await page.locator('.chat-form textarea').press('Enter');
+  await page.waitForFunction(() => document.querySelectorAll('.msg.error').length >= 2, null, {
+    timeout: 30000,
+  });
+  const busyText = await page.locator('.msg.error .msg-text').last().textContent();
+  assert(
+    busyText.includes('503') && busyText.includes('overloaded') && busyText.includes('flash-lite'),
+    `混雑が続いたら、詳しい内容と別のモデルを試す案を出す (${busyText.replace(/\n/g, ' ')})`,
+  );
+
   // 5) 設定画面：モデルの一覧を取得して選べる
   await page.getByRole('button', { name: '閉じる' }).click();
   await page.goto('http://localhost:5173/#/settings');
@@ -254,7 +284,7 @@ const reply = (parts, finishReason = 'STOP') => ({
     'Claudeに切り替えられる',
   );
 
-  const unexpected = errors.filter((e) => !e.includes('429') && !e.includes('500'));
+  const unexpected = errors.filter((e) => !/\b(429|500|503)\b/.test(e));
   console.log(
     unexpected.length ? 'ERRORS:\n' + unexpected.join('\n') : 'no unexpected console errors',
   );
