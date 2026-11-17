@@ -24,6 +24,14 @@ export function ChatPanel() {
   const route = useRoute();
   const [text, setText] = useState('');
   const listRef = useRef<HTMLDivElement>(null);
+  // 返事に時間がかかっているとき（15秒より長いとき）は、アプリを開いたまま待つよう案内する
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    setSlow(false);
+    if (!chat.busy) return;
+    const t = setTimeout(() => setSlow(true), 15_000);
+    return () => clearTimeout(t);
+  }, [chat.busy]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // ほかの画面から「AIに頼む」で開いたときは、その文を入力欄に入れておく
@@ -151,10 +159,13 @@ export function ChatPanel() {
                 </ul>
               )}
               {m.text && <p className="msg-text">{m.text}</p>}
-              {waiting && !m.text && (
+              {waiting && (!m.text || m.status) && (
                 <p className="msg-wait" role="status">
                   <span className="typing" aria-hidden="true" />
-                  考えています…
+                  {m.status ??
+                    (slow
+                      ? '考えています…（時間がかかっています。返事が来るまで、このまま開いておいてください）'
+                      : '考えています…')}
                 </p>
               )}
             </div>

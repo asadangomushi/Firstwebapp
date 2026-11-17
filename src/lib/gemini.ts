@@ -23,18 +23,37 @@ resetHooks.add(() => {
 });
 
 /**
- * Gemini側の一時的なエラー（混雑など）のときは、少し待って自動でやり直す。
+ * Gemini側の一時的なエラー（混雑など）や、通信の途切れのときは、少し待って自動でやり直す。
  * 回数の上限（429）はやり直しても回復しないことが多いので、やり直さずにすぐ伝える。
+ * やり直しはSDKに任せず自分で行い、「やり直しています」と画面に出す（待っている理由が分かるように）。
  */
-const RETRY = {
-  attempts: 3,
-  initialDelay: 1.5,
-  maxDelay: 8,
-  httpStatusCodes: [500, 502, 503, 504],
-};
+const MAX_ATTEMPTS = 3;
+const RETRY_STATUS = new Set([500, 502, 503, 504]);
+/** 1回目のやり直しまでの待ち時間（ミリ秒）。2回目はその倍。 */
+const RETRY_DELAY = 2000;
+
+/** ブラウザが通信そのものに失敗したときのエラー（Chromeでは「Failed to fetch」） */
+function isNetworkError(err: unknown): boolean {
+  return err instanceof TypeError && /fetch|network/i.test(err.message);
+}
+
+function wait(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) return reject(new DOMException('中止しました', 'AbortError'));
+    const timer = setTimeout(() => {
+      signal.removeEventListener('abort', stop);
+      resolve();
+    }, ms);
+    const stop = () => {
+      clearTimeout(timer);
+      reject(new DOMException('中止しました', 'AbortError'));
+    };
+    signal.addEventListener('abort', stop, { once: true });
+  });
+}
 
 function client(apiKey: string): GoogleGenAI {
-  return new GoogleGenAI({ apiKey, httpOptions: { retryOptions: RETRY } });
+  return new GoogleGenAI({ apiKey });
 }
 
 /** Googleが返したエラーの説明文を取り出す（調べやすいよう、そのまま利用者にも見せる） */
@@ -121,21 +140,48 @@ export function describe(err: unknown): string {
     }
     if (err.status >= 500) {
       return [
-        `Gemini側で一時的なエラーが起きました（${err.status}）。自動で3回やり直しましたが、うまくいきませんでした。`,
+        `Gemini側で一時的なエラーが起きました（${err.status}）。自動で${MAX_ATTEMPTS}回試しましたが、うまくいきませんでした。`,
         '少し待ってからもう一度送るか、設定の「AIアシスタント」で別のモデル（名前に flash-lite が付くものなど）を選んでみてください。',
         `詳しい内容：${detail(err)}`,
       ].join('\n');
     }
     return `Geminiからエラーが返りました（${err.status}）：${detail(err)}`;
   }
-  if (err instanceof TypeError) {
-    return 'Geminiにつながりませんでした。ネットワークを確認してください。';
+  if (isNetworkError(err)) {
+    return [
+      `Geminiとの通信が途中で切れました。自動で${MAX_ATTEMPTS}回試しましたが、つながりませんでした。`,
+      '電波の良いところで、返事が来るまで手帳アプリを開いたまま待ってみてください。',
+      `詳しい内容：${String(err)}`,
+    ].join('\n');
   }
-  return err instanceof Error ? err.message : '送信に失敗しました。';
+  // 思いがけないエラーは、原因を調べられるよう中身をそのまま見せる
+  return `うまく処理できませんでした。\n詳しい内容：${err instanceof Error ? `${err.name}: ${err.message}` : String(err)}`;
 }
 
 export async function run(r: ProviderRun): Promise<void> {
   const settings = getSettings();
+
+  /** 1回分の呼び出しを、一時的なエラーなら待ってやり直す */
+  const generate = async <T>(call: () => Promise<T>): Promise<T> => {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        const res = await call();
+        r.onStatus('');
+        return res;
+      } catch (err) {
+        const retryable =
+          (err instanceof ApiError && RETRY_STATUS.has(err.status)) || isNetworkError(err);
+        if (!retryable || attempt >= MAX_ATTEMPTS || r.signal.aborted) throw err;
+        r.onStatus(
+          isNetworkError(err)
+            ? `通信が途切れたので、やり直しています（${attempt + 1}/${MAX_ATTEMPTS}回目）…`
+            : `Geminiが混み合っているので、やり直しています（${attempt + 1}/${MAX_ATTEMPTS}回目）…`,
+        );
+        await wait(RETRY_DELAY * 2 ** (attempt - 1), r.signal);
+      }
+    }
+  };
+
   // 個人の端末で自分のキーを使う前提なので、ブラウザから直接呼ぶ
   const ai = client(settings.geminiApiKey);
 
@@ -150,7 +196,9 @@ export async function run(r: ProviderRun): Promise<void> {
   };
 
   for (let turn = 0; turn < MAX_TURNS; turn++) {
-    const res = await ai.models.generateContent({ model: settings.geminiModel, contents, config });
+    const res = await generate(() =>
+      ai.models.generateContent({ model: settings.geminiModel, contents, config }),
+    );
 
     if (res.promptFeedback?.blockReason) {
       throw new Stopped('この内容にはお答えできませんでした。言い方を変えて試してみてください。');

@@ -58,6 +58,8 @@ const reply = (parts, finishReason = 'STOP') => ({
     calls.push({ path: url.pathname, headers: req.headers(), body: req.postDataJSON() });
     const next = script.shift();
     if (!next) return json(500, { error: { code: 500, message: 'no script', status: 'INTERNAL' } });
+    // 通信の途切れ（ブラウザでは「Failed to fetch」になる）
+    if (next.abort) return route.abort('failed');
     if (next.status) return json(next.status, next.body);
     return json(200, next);
   });
@@ -237,6 +239,12 @@ const reply = (parts, finishReason = 'STOP') => ({
   script = [overloaded, reply([{ text: 'やり直して答えました。' }])];
   await page.locator('.chat-form textarea').fill('こんにちは');
   await page.locator('.chat-form textarea').press('Enter');
+  await page.waitForFunction(() =>
+    document
+      .querySelector('.msg-wait')
+      ?.textContent.includes('混み合っているので、やり直しています'),
+  );
+  assert(true, 'やり直している間は、その様子が表示される');
   await said('やり直して答えました');
   assert(true, '混雑のエラーのあと、自動でやり直して答えが出る');
 
@@ -252,6 +260,30 @@ const reply = (parts, finishReason = 'STOP') => ({
     busyText.includes('503') && busyText.includes('overloaded') && busyText.includes('flash-lite'),
     `混雑が続いたら、詳しい内容と別のモデルを試す案を出す (${busyText.replace(/\n/g, ' ')})`,
   );
+
+  // 4d) 通信が途切れても、自動でやり直す
+  script = [{ abort: true }, reply([{ text: 'つながりました。' }])];
+  await page.locator('.chat-form textarea').fill('こんにちは');
+  await page.locator('.chat-form textarea').press('Enter');
+  await page.waitForFunction(() =>
+    document.querySelector('.msg-wait')?.textContent.includes('通信が途切れたので'),
+  );
+  await said('つながりました');
+  assert(true, '通信が途切れたあと、自動でやり直して答えが出る');
+
+  // 4e) 通信の途切れが続いたら、詳しい内容と次の手を伝える
+  script = [{ abort: true }, { abort: true }, { abort: true }];
+  await page.locator('.chat-form textarea').fill('こんにちは');
+  await page.locator('.chat-form textarea').press('Enter');
+  await page.waitForFunction(() => document.querySelectorAll('.msg.error').length >= 3, null, {
+    timeout: 30000,
+  });
+  const netText = await page.locator('.msg.error .msg-text').last().textContent();
+  assert(
+    netText.includes('通信が途中で切れました') && netText.includes('Failed to fetch'),
+    `通信の途切れが続いたら、詳しい内容を出す (${netText.replace(/\n/g, ' ')})`,
+  );
+  assert((await page.locator('.msg-wait').count()) === 0, '終わったら、待っている表示は消える');
 
   // 5) 設定画面：モデルの一覧を取得して選べる
   await page.getByRole('button', { name: '閉じる' }).click();
@@ -284,7 +316,7 @@ const reply = (parts, finishReason = 'STOP') => ({
     'Claudeに切り替えられる',
   );
 
-  const unexpected = errors.filter((e) => !/\b(429|500|503)\b/.test(e));
+  const unexpected = errors.filter((e) => !/\b(429|500|503)\b|ERR_FAILED/.test(e));
   console.log(
     unexpected.length ? 'ERRORS:\n' + unexpected.join('\n') : 'no unexpected console errors',
   );

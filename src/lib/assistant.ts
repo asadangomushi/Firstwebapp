@@ -65,6 +65,8 @@ export interface ChatItem {
   text: string;
   actions: ChatAction[];
   error?: boolean;
+  /** 待っている間に見せる様子（「やり直しています」など） */
+  status?: string;
 }
 
 export interface ChatContext {
@@ -606,6 +608,8 @@ export interface ProviderRun {
   onToolsUsed: () => void;
   /** まだ何も画面に出していないか */
   isEmpty: () => boolean;
+  /** 待っている間の様子を知らせる（空文字で消す） */
+  onStatus: (status: string) => void;
 }
 
 export interface Provider {
@@ -653,6 +657,14 @@ export async function sendChat(text: string, ctx: ChatContext): Promise<void> {
   abort = controller;
   let provider: Provider | undefined;
 
+  // 返事を待っている間に手帳アプリから離れると、スマホは通信を止めてしまうことがある。
+  // 失敗したときにその可能性を伝えられるよう、離れたかどうかを覚えておく。
+  let leftApp = false;
+  const onVisibility = () => {
+    if (document.visibilityState === 'hidden') leftApp = true;
+  };
+  document.addEventListener('visibilitychange', onVisibility);
+
   try {
     provider = await loadProvider(id);
     await provider.run({
@@ -665,6 +677,7 @@ export async function sendChat(text: string, ctx: ChatContext): Promise<void> {
       onText: (delta) => patchLast((m) => ({ ...m, text: m.text + delta })),
       onToolsUsed: () => patchLast((m) => (m.text ? { ...m, text: `${m.text.trimEnd()}\n\n` } : m)),
       isEmpty: () => state.items[state.items.length - 1]?.text === '',
+      onStatus: (status) => patchLast((m) => ({ ...m, status: status || undefined })),
     });
     patchLast((m) => ({
       ...m,
@@ -674,12 +687,16 @@ export async function sendChat(text: string, ctx: ChatContext): Promise<void> {
     if (controller.signal.aborted) {
       patchLast((m) => ({ ...m, text: `${m.text.trim()}\n（中止しました）`.trim() }));
     } else {
-      const msg =
+      let msg =
         err instanceof Stopped
           ? err.message
           : provider
             ? provider.describe(err)
             : 'AIの部品を読み込めませんでした。ネットワークを確認してください。';
+      if (leftApp && !(err instanceof Stopped)) {
+        msg +=
+          '\n（返事を待っている間に手帳アプリから離れたため、通信が止められた可能性があります。返事が来るまで、アプリを開いたまま待ってみてください）';
+      }
       patchLast((m) => ({
         ...m,
         error: true,
@@ -687,6 +704,8 @@ export async function sendChat(text: string, ctx: ChatContext): Promise<void> {
       }));
     }
   } finally {
+    document.removeEventListener('visibilitychange', onVisibility);
+    patchLast((m) => (m.status ? { ...m, status: undefined } : m));
     abort = null;
     set({ busy: false });
   }
